@@ -125,7 +125,12 @@ class Empty extends TweetSet {
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
     def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = ???
-  
+
+  override def filter(p: (Tweet) => Boolean): TweetSet = {
+    def set: TweetSet = new Empty()
+    foreach(filterAcc(p, set))
+    set
+  }
     
   /**
    * The following methods are already implemented
