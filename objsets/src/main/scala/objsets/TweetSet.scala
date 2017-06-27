@@ -67,7 +67,7 @@ abstract class TweetSet {
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-    def mostRetweeted: Tweet = ???
+    def mostRetweeted: Tweet
   
   /**
    * Returns a list containing all tweets of this set, sorted by retweet count
@@ -78,7 +78,7 @@ abstract class TweetSet {
    * Question: Should we implment this method here, or should it remain abstract
    * and be implemented in the subclasses?
    */
-    def descendingByRetweet: TweetList = ???
+    def descendingByRetweet: TweetList
   
   /**
    * The following methods are already implemented
@@ -106,6 +106,8 @@ abstract class TweetSet {
    * This method takes a function and applies it to every element in the set.
    */
   def foreach(f: Tweet => Unit): Unit
+
+  def most(cur: Tweet): Tweet
 }
 
 class Empty extends TweetSet {
@@ -126,6 +128,12 @@ class Empty extends TweetSet {
   def foreach(f: Tweet => Unit): Unit = ()
 
   def unionAcc(acc: TweetSet): TweetSet = acc
+
+  def mostRetweeted: Tweet = throw new NoSuchElementException()
+
+  def most(cur: Tweet): Tweet = cur
+
+  def descendingByRetweet: TweetList = Nil
 }
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
@@ -146,6 +154,20 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
 
   def unionAcc(acc: TweetSet): TweetSet = left.unionAcc(right.unionAcc(acc.incl(elem)))
 
+  def mostRetweeted: Tweet = {
+    val res: Tweet = elem
+    remove(elem).most(res)
+  }
+
+  def most(cur: Tweet): Tweet = {
+    if (elem.retweets > cur.retweets) remove(elem).most(elem)
+    else remove(elem).most(cur)
+  }
+
+  def descendingByRetweet: TweetList = {
+    val mostRet = mostRetweeted
+    new Cons(mostRet, remove(mostRet).descendingByRetweet)
+  }
     
   /**
    * The following methods are already implemented
