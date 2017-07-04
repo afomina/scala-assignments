@@ -28,7 +28,7 @@ object Huffman {
   // Part 1: Basics
   def weight(tree: CodeTree): Int = tree match {
     case Leaf(c, w) => w
-    case Fork(left, right, cs, w) => w + weight(left) + weight(right)
+    case Fork(left, right, cs, w) => weight(left) + weight(right)
   }
 
   def chars(tree: CodeTree): List[Char] = tree match {
@@ -96,12 +96,12 @@ object Huffman {
    */
   def makeOrderedLeafList(freqs: List[(Char, Int)]): List[Leaf] = {
     val weights:List[(Char, Int)] = sort(freqs)
-    makeList(weights, new List())
+    makeList(weights)
   }
 
-  def makeList(ws: List[(Char, Int)], list: List[Leaf]) = {
-    if (ws.isEmpty) list
-    else list :: new Leaf(ws.head._1, ws.head._2) :: makeList(ws.tail)
+  def makeList(ws: List[(Char, Int)]): List[Leaf] = {
+    if (ws.isEmpty) Nil
+    else new Leaf(ws.head._1, ws.head._2) :: makeList(ws.tail)
   }
 
   def sort(list: List[(Char, Int)]) : List[(Char, Int)] = {
@@ -145,7 +145,7 @@ object Huffman {
 
   def insert(node: CodeTree, trees: List[CodeTree]): List[CodeTree] = {
     if (trees.isEmpty) node :: Nil
-    else if (trees.head.weight >= node.weight) node :: trees
+    else if (weight(trees.head) >= weight(node)) node :: trees
     else trees.head :: insert(node, trees.tail)
   }
 
