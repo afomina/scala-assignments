@@ -76,15 +76,26 @@ object Huffman {
    * println("integer is  : "+ theInt)
    * }
    */
-  def times(chars: List[Char]): List[(Char, Int)] = tm(chars, List())
+  def times(chars: List[Char]): List[(Char, Int)] = {
+    if (chars.isEmpty) Nil
+    else removeRepeat((chars.head, count(chars.head, chars)) :: times(chars.tail))
+  }
 
-  def tm(chars: List[Char], res: List[(Char, Int)]): List[(Char, Int)] = {
-    val v = chars.head
-    if (chars.isEmpty) res
-    else res match {
-      case List() =>  tm(chars.tail, (chars.head, 1) :: Nil)
-      case x :: (v, t) :: y => tm(chars.tail, x :: (chars.head, t+1) :: y)
-    }
+  def count(char: Char, chars: List[Char]): Int = {
+    if (chars.isEmpty) 0
+    else if (chars.head == char) 1 + count(char, chars.tail)
+    else count(char, chars.tail)
+  }
+
+  def removeRepeat(map: List[(Char, Int)]): List[(Char, Int)] = {
+    if (map.isEmpty) Nil
+    else map.head :: removeRepeat(removeEl(map.head, map.tail))
+  }
+
+  def removeEl(pair: (Char, Int), map: List[(Char, Int)]): List[(Char, Int)] = {
+    if (map.isEmpty) Nil
+    else if (map.head._1 == pair._1) removeEl(pair, map.tail)
+    else map.head :: removeEl(pair, map.tail)
   }
 
   /**

@@ -53,4 +53,11 @@ class HuffmanSuite extends FunSuite {
     }
   }
 
+  test("create code tree") {
+    new TestTrees {
+      val tree: CodeTree = createCodeTree("abc".toList)
+      assert(tree != Nil)
+    }
+  }
+
 }
