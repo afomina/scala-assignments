@@ -277,9 +277,11 @@ object Huffman {
    * sub-trees, think of how to build the code table for the entire tree.
    */
   def convert(tree: CodeTree): CodeTable = tree match {
-    case Leaf(c, w) => (c, encodeChar(tree)(c)) :: Nil
+    case Leaf(c, w) => (c, List()) :: Nil //need full tree not leaf to encode
     case Fork(left, right, cs, w) => mergeCodeTables(convert(left), convert(right))
   }
+
+  def comeDown(left: Bit)(code: (Char, List[Bit])): (Char, List[Bit]) = (code._1, left :: code._2)
 
   /**
    * This function takes two code tables and merges them into one. Depending on how you
@@ -287,10 +289,7 @@ object Huffman {
    * on the two parameter code tables.
    */
   def mergeCodeTables(a: CodeTable, b: CodeTable): CodeTable = {
-    if (b.isEmpty) a
-    if (a.isEmpty) b
-    if (a.contains(b.head)) mergeCodeTables(a, b.tail)
-    else mergeCodeTables(b.head :: a, b.tail)
+   a.map(comeDown(0)) ::: b.map(comeDown(1))
   }
 
   /**
@@ -299,9 +298,7 @@ object Huffman {
    * To speed up the encoding process, it first converts the code tree to a code table
    * and then uses it to perform the actual encoding.
    */
-  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = {
-    encodeOne(convert(tree))(text)
-  }
+  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = encodeOne(convert(tree))(text)
 
   def encodeOne(table: CodeTable)(text: List[Char]) : List[Bit] = {
     if (text.isEmpty) Nil
