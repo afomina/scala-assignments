@@ -86,16 +86,42 @@ object Anagrams {
    *  in the example above could have been displayed in some other order.
    */
   def combinations(occurrences: Occurrences): List[Occurrences] = {
-
-    for (occ <- occurrences) yield List(occ)
-    for (occ <- occurrences if occ._2 > 1) yield combinations(occurrences - occ)
-    //    else if (occurrences.head._2 > 1)
-//      List(occurrences.head) :: List(occurrences) :::
-//        combinations((occurrences.head._1, occurrences.head._2 - 1) :: occurrences.tail)
-//    else List(occurrences.head) :: List(occurrences) ::: combinations(occurrences.tail) ::: Nil
+    if (occurrences.isEmpty) List(List())
+    else {
+      var result: List[Occurrences] = List(List())
+      for (s: (Char, Int) <- occurrences) {
+        val tail = combinations(removeWithKey(occurrences, s))
+        for (i: Int <- 1 to s._2) {
+          if (tail.isEmpty)
+            result = List((s._1, i)) :: result
+          else for (t <- tail)
+            result = result ::: subsets((s._1, i) :: t)
+        }
+      }
+      removeDuplicates(result)
+    }
   }
 
-  def abc: List[Int] = 1 :: List(2, 3) ::: Nil
+  def subsets(occurrences: Occurrences): List[Occurrences] = occurrences.toSet.subsets.map(_.toList).toList
+
+  def removeWithKey(x: Occurrences, y: (Char, Int)): Occurrences = x.filter(_._1 != y._1)
+
+  def occurrencesEqual(as: Occurrences, bs: Occurrences): Boolean = {
+    if (as.size != bs.size) return false
+    else for( a <- as) {
+      if (bs.filter((b: (Char, Int)) => b._1 == a._1 && b._2 == a._2).size == 0)
+        return false
+    }
+    true
+  }
+
+  def removeDuplicates(list: List[Occurrences]): List[Occurrences] = {
+    var res = list
+    for ((a, i) <- list zipWithIndex)
+      for (b <- list slice(i + 1, list.size) if b != a && occurrencesEqual(a, b))
+        res = res.filter(_ != b)
+    res
+  }
 
   /** Subtracts occurrence list `y` from occurrence list `x`.
    *
