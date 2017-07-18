@@ -1,5 +1,7 @@
 package forcomp
 
+import scala.collection.mutable
+
 
 object Anagrams {
 
@@ -92,13 +94,12 @@ object Anagrams {
       for (s: (Char, Int) <- occurrences) {
         val tail = combinations(removeWithKey(occurrences, s))
         for (i: Int <- 1 to s._2) {
-          if (tail.isEmpty)
-            result = List((s._1, i)) :: result
-          else for (t <- tail)
-            result = result ::: subsets((s._1, i) :: t)
+          result = List((s._1, i)) :: result
+          for (t <- tail)
+            result = result ::: List((s._1, i) :: t) ::: List(t)
         }
       }
-      removeDuplicates(result)
+      result
     }
   }
 
@@ -133,12 +134,23 @@ object Anagrams {
    *  Note: the resulting value is an occurrence - meaning it is sorted
    *  and has no zero-entries.
    */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = ??? //{
-   // var map: Map[Char, Int]
-//    for (b <- y)
-//      for (a <- x if a._1 == b._1)
-    //x.foldLeft(y)((a, b) => )
- // }
+  def subtract(x: Occurrences, y: Occurrences): Occurrences = {
+    var map = new mutable.HashMap[Char, Int]()
+    for (a <- x) {
+      map.put(a._1, a._2)
+    }
+    for (b <- y) {
+      val aVal = map.getOrElse(b._1, 0)
+      if (aVal > b._2)
+        map.update(b._1, aVal - b._2)
+      else if (aVal == b._2)
+        map.remove(b._1)
+    }
+    var res : Occurrences = List()
+    for ((k, v) <- map)
+      res = (k, v) :: res
+    res
+ }
 
   /** Returns a list of all anagram sentences of the given sentence.
    *
@@ -180,7 +192,7 @@ object Anagrams {
    *
    *  Note: There is only one anagram of an empty sentence.
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = sentence :: Nil /*{
     if (sentence.isEmpty) List(List())
     else {
       var result: List[Sentence] = List(List())
@@ -192,5 +204,5 @@ object Anagrams {
       }
       result
     }
-  }
+  }*/
 }
