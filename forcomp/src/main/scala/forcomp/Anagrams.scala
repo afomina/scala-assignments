@@ -94,12 +94,13 @@ object Anagrams {
       for (s: (Char, Int) <- occurrences) {
         val tail = combinations(removeWithKey(occurrences, s))
         for (i: Int <- 1 to s._2) {
-          result = List((s._1, i)) :: result
-          for (t <- tail)
-            result = result ::: List((s._1, i) :: t) ::: List(t)
+          if (tail.isEmpty)
+            result = List((s._1, i)) :: result
+          else for (t <- tail)
+           result = result ::: subsets((s._1, i) :: t)
         }
       }
-      result
+      removeDuplicates(result)
     }
   }
 
@@ -149,7 +150,7 @@ object Anagrams {
     var res : Occurrences = List()
     for ((k, v) <- map)
       res = (k, v) :: res
-    res
+    res.sortBy((q: (Char, Int)) => q._1)
  }
 
   /** Returns a list of all anagram sentences of the given sentence.
