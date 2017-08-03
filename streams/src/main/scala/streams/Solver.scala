@@ -67,7 +67,7 @@ trait Solver extends GameDef {
     if (initial.isEmpty || explored.contains(initial.head._1)) return Stream()
     else {
       for (b <- initial) {
-        if (done(b._1)) initial
+        if (done(b._1)) return initial
         else {
           val res = from(newNeighborsOnly(
             neighborsWithHistory(b._1, b._2), explored), explored + b._1)
@@ -98,6 +98,7 @@ trait Solver extends GameDef {
    * position.
    */
   lazy val solution: List[Move] = {
+    val fr = pathsFromStart
     val path = pathsToGoal
     if (path isEmpty) List() else path.head._2.reverse
   }
