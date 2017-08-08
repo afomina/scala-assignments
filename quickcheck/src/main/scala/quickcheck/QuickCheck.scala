@@ -3,11 +3,12 @@ package quickcheck
 import java.util.NoSuchElementException
 
 import common._
-
 import org.scalacheck._
 import Arbitrary._
 import Gen._
 import Prop._
+
+import scala.util.Random
 
 abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
 
@@ -15,7 +16,7 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
 
     for {
       h <- oneOf(const(empty), genHeap)
-      a <- arbitrary[Int]
+      a <- Random.nextInt()
     } yield insert(a, h)
   )
 
@@ -76,5 +77,10 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
 
   property("gen10") = forAll { (h: H) =>
     findDel(insert(1, h)).size == findDel(h).size + 1
+  }
+
+  property("gen11") = forAll { (h: H, q: H) =>
+    val m = findMin(h)
+    findDel(meld(h, q)) == findDel(meld(deleteMin(h), insert(m, q)))
   }
 }
