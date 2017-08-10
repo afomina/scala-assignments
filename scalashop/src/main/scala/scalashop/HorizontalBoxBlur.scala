@@ -55,8 +55,9 @@ object HorizontalBoxBlur {
     * rows.
     */
   def parBlur(src: Img, dst: Img, numTasks: Int, radius: Int): Unit = {
-    // TODO implement using the `task` construct and the `blur` method
-    val points = 0 until src.height by src.height / numTasks
+    val step = if (numTasks > src.height) 1 else src.height / numTasks
+    var points = (0 to src.height by step).toList
+    if (points(points.size - 1) < src.height) points = points.updated(points.size - 1, src.height)
     var tasks = List()
     for (p <- points zip points.tail) {
       task {
