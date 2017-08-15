@@ -15,7 +15,7 @@ object ParallelParenthesesBalancingRunner {
     Key.exec.maxWarmupRuns -> 80,
     Key.exec.benchRuns -> 120,
     Key.verbose -> true
-  ) withWarmer(new Warmer.Default)
+  ) withWarmer (new Warmer.Default)
 
   def main(args: Array[String]): Unit = {
     val length = 100000000
@@ -39,24 +39,48 @@ object ParallelParenthesesBalancingRunner {
 object ParallelParenthesesBalancing {
 
   /** Returns `true` iff the parentheses in the input `chars` are balanced.
-   */
+    */
   def balance(chars: Array[Char]): Boolean = {
-    ???
+    def bal(chars: Array[Char], n: Int): Boolean = {
+      if (chars.isEmpty) return n == 0
+      def c = chars.head
+      if (c == '(') bal(chars.tail, n + 1)
+      else if (c == ')') {
+        if (n == 0) false else bal(chars.tail, n - 1)
+      }
+      else bal(chars.tail, n)
+    }
+    bal(chars, 0)
   }
 
-  /** Returns `true` iff the parentheses in the input `chars` are balanced.
-   */
+  /** Returns `true` if the parentheses in the input `chars` are balanced.
+    */
   def parBalance(chars: Array[Char], threshold: Int): Boolean = {
 
-    def traverse(idx: Int, until: Int, arg1: Int, arg2: Int) /*: ???*/ = {
-      ???
+    def traverse(idx: Int, until: Int, open: Int, close: Int): (Int, Int) = {
+      if (idx == until) (open, close)
+      else {
+        val c = chars(idx)
+        if (c == '(') traverse(idx + 1, until, open + 1, close)
+        else if (c == ')') {
+          if (open > 0) traverse(idx + 1, until, open - 1, close)
+          else traverse(idx + 1, until, open, close + 1)
+        }
+        else traverse(idx + 1, until, open, close)
+      }
     }
 
-    def reduce(from: Int, until: Int) /*: ???*/ = {
-      ???
+    def reduce(from: Int, until: Int): (Int, Int) = {
+      if (until <= from) (0, 0)
+      else if (until - from > threshold) {
+        val (a, b) = parallel(reduce(from, until / 2), reduce(until / 2, until))
+        (a._1 + b._1 - a._2 - b._2, 0)
+      }
+      else traverse(from, until, 0, 0)
     }
 
-    reduce(0, chars.length) == ???
+    if (chars.size <= threshold) balance(chars)
+    else reduce(0, chars.length)._1 == 0
   }
 
   // For those who want more:
