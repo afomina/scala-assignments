@@ -58,7 +58,7 @@ object ParallelParenthesesBalancing {
   def parBalance(chars: Array[Char], threshold: Int): Boolean = {
 
     def traverse(idx: Int, until: Int, open: Int, close: Int): (Int, Int) = {
-      if (idx == until - 1) (open, close)
+      if (idx == until) (open, close)
       else {
         val c = chars(idx)
         if (c == '(') traverse(idx + 1, until, open + 1, close)
