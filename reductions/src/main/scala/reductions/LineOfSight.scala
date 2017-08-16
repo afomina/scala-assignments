@@ -38,7 +38,7 @@ object LineOfSight {
     for (x <- input) {
       if (x == 0) output.update(idx, 0)
       else {
-        output.update(idx, max(x/idx, output(idx - 1)))
+        output.update(idx, max(x / idx, output(idx - 1)))
       }
       idx = idx + 1
     }
@@ -57,7 +57,13 @@ object LineOfSight {
   /** Traverses the specified part of the array and returns the maximum angle.
     */
   def upsweepSequential(input: Array[Float], from: Int, until: Int): Float = {
-    ???
+    var max = 0f
+    var i = from
+    while (i < until) {
+      if (i != 0 && input(i) / i > max) max = input(i) / i
+      i = i + 1
+    }
+    max
   }
 
   /** Traverses the part of the array starting at `from` and until `end`, and
