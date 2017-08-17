@@ -65,16 +65,22 @@ class KMeans {
   }
 
   def update(classified: GenMap[Point, GenSeq[Point]], oldMeans: GenSeq[Point]): GenSeq[Point] = {
-    ???
+    oldMeans.map(m => findAverage(m, classified.getOrElse(m, List())))
   }
 
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
-    ???
+    var res = true
+    for {
+      old <- oldMeans
+      n <- newMeans
+    } if (old.squareDistance(n) > eta) res = false
+    res
   }
 
   @tailrec
   final def kMeans(points: GenSeq[Point], means: GenSeq[Point], eta: Double): GenSeq[Point] = {
-    if (???) kMeans(???, ???, ???) else ??? // your implementation need to be tail recursive
+    val updated = update(classify(points, means), means)
+    if (!converged(eta)(means, updated)) kMeans(points, updated, eta) else updated // your implementation need to be tail recursive
   }
 }
 
