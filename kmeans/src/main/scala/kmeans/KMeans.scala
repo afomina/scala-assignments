@@ -44,6 +44,7 @@ class KMeans {
 
   def classify(points: GenSeq[Point], means: GenSeq[Point]): GenMap[Point, GenSeq[Point]] = {
     val res = new mutable.HashMap[Point, List[Point]]()
+    for (m <- means) res.put(m, List())
     for (p <- points) {
       val mean = findClosest(p, means)
       res.update(mean, p :: res.getOrElse(mean, List()))
