@@ -47,7 +47,7 @@ class KMeans {
     for (m <- means) res.put(m, List())
     for (p <- points) {
       val mean = findClosest(p, means)
-      res.update(mean, p :: res.getOrElse(mean, List()))
+      res.update(mean, res.getOrElse(mean, List()).:+(p))
     }
     res
   }
