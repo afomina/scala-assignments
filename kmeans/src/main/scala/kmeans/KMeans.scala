@@ -70,10 +70,11 @@ class KMeans {
 
   def converged(eta: Double)(oldMeans: GenSeq[Point], newMeans: GenSeq[Point]): Boolean = {
     var res = true
-    for {
-      old <- oldMeans
-      n <- newMeans
-    } if (old.squareDistance(n) > eta) res = false
+    var i = 0
+    while (i < oldMeans.size && res) {
+      if (oldMeans(i).squareDistance(newMeans(i)) > eta) res = false
+      i += 1
+    }
     res
   }
 
