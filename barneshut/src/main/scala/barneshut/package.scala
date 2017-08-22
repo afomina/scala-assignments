@@ -86,7 +86,7 @@ package object barneshut {
     def insert(b: Body): Quad = {
       if (size > minimumSize) {
         var temp = Fork(Empty(centerX, centerY, size), Empty(centerX, centerY, size),
-          Empty(centerX, centerY, size), Empty(centerX, centerY, size));
+          Empty(centerX, centerY, size), Empty(centerX, centerY, size))
         for (item <- bodies)
           temp = temp.insert(item)
         temp
