@@ -54,16 +54,23 @@ package object barneshut {
   case class Fork(
     nw: Quad, ne: Quad, sw: Quad, se: Quad
   ) extends Quad {
-    val centerX: Float = ???
-    val centerY: Float = ???
-    val size: Float = ???
-    val mass: Float = ???
-    val massX: Float = ???
-    val massY: Float = ???
-    val total: Int = ???
+    val centerX: Float = nw.centerX + nw.size / 2
+    val centerY: Float = nw.centerY + nw.size / 2
+    val size: Float = nw.size * 2
+    val mass: Float = nw.mass + ne.mass + sw.mass + se.mass
+    val massX: Float = (nw.mass * nw.centerX + ne.mass * ne.centerX + sw.mass * sw.centerX + se.mass * se.centerX) / mass
+    val massY: Float = (nw.mass * nw.centerY + ne.mass * ne.centerY + sw.mass * sw.centerY + se.mass * se.centerY) / mass
+    val total: Int = nw.total + ne.total + sw.total + se.total
 
     def insert(b: Body): Fork = {
-      ???
+      val h = nw.size / 2
+      if (b.x > nw.centerX - h && b.x < nw.centerX + h && b.y > nw.centerY - h && b.y < nw.centerY + h)
+        Fork(nw.insert(b), ne, sw, se)
+      else if (b.x > ne.centerX - h && b.x < ne.centerX + h && b.y > ne.centerY - h && b.y < ne.centerY + h)
+        Fork(nw, ne.insert(b), sw, se)
+      else if (b.x > sw.centerX - h && b.x < sw.centerX + h && b.y > sw.centerY - h && b.y < sw.centerY + h)
+        Fork(nw, ne, sw.insert(b), se)
+      else Fork(nw, ne, sw, se.insert(b))
     }
   }
 
