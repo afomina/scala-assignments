@@ -178,7 +178,8 @@ package object barneshut {
     for (i <- 0 until matrix.length) matrix(i) = new ConcBuffer
 
     def +=(b: Body): SectorMatrix = {
-      matrix(b.x).+=b
+      if (b.x <= boundaries.maxX && b.x >= boundaries.minX && b.y >= boundaries.minY && b.y <= boundaries.maxY)
+        matrix((b.y * sectorPrecision + b.x).toInt) += b
       this
     }
 
