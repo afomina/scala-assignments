@@ -80,7 +80,7 @@ package object barneshut {
 
   case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: Seq[Body])
     extends Quad {
-    val (mass, massX, massY) = (mass: Float, massX: Float, massY: Float)
+    val (mass: Float, massX: Float, massY: Float) = (mass: Float, massX: Float, massY: Float)
     val total: Int = bodies.size
 
     def insert(b: Body): Quad = {
@@ -143,9 +143,19 @@ package object barneshut {
         // no force
         case Leaf(_, _, _, bodies) =>
         // add force contribution of each body by calling addForce
+          for (b <- bodies)
+            addForce(b.mass, b.x, b.y)
         case Fork(nw, ne, sw, se) =>
         // see if node is far enough from the body,
         // or recursion is needed
+          if (nw.size / distance(x, y, quad.massX, quad.massY) < theta)
+            addForce(quad.mass, quad.massX, quad.massY)
+          else {
+            traverse(nw)
+            traverse(ne)
+            traverse(sw)
+            traverse(se)
+          }
       }
 
       traverse(quad)
@@ -168,7 +178,7 @@ package object barneshut {
     for (i <- 0 until matrix.length) matrix(i) = new ConcBuffer
 
     def +=(b: Body): SectorMatrix = {
-      ???
+      matrix(b.x).+=b
       this
     }
 
