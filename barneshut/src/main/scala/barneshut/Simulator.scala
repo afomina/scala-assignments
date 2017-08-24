@@ -12,11 +12,33 @@ import common._
 class Simulator(val taskSupport: TaskSupport, val timeStats: TimeStatistics) {
 
   def updateBoundaries(boundaries: Boundaries, body: Body): Boundaries = {
-    ???
+    boundaries.minX = Math.min(boundaries.minX, body.x)
+    boundaries.maxX = Math.max(boundaries.maxX, body.x)
+    boundaries.minY = Math.min(boundaries.minY, body.y)
+    boundaries.maxY = Math.max(boundaries.maxY, body.y)
+    boundaries
   }
 
   def mergeBoundaries(a: Boundaries, b: Boundaries): Boundaries = {
-    ???
+    var minX = Math.min(a.minX, b.minX)
+    var maxX = Math.max(a.maxX, b.maxX)
+    var minY = Math.min(a.minY, b.minY)
+    var maxY = Math.max(a.maxY, b.maxY)
+    if (b.minX > a.minX && b.minX < a.maxX) minX = b.minX
+    else if (a.minX > b.minX && a.minX < b.maxX) minX = a.minX
+    if (b.minY > a.minY && b.minY < a.maxY) minY = b.minY
+    else if (a.minY > b.minY && a.minY < b.maxY) minY = a.minY
+
+    if (b.maxX > a.minX && b.maxX < a.maxX) maxX = b.maxX
+    else if (a.maxX > b.minX && a.maxX < b.maxX) maxX = a.maxX
+    if (b.maxY > a.minY && b.maxY < a.maxY) maxY = b.maxY
+    else if (a.maxY > b.minY && a.maxY < b.maxY) maxY = a.maxY
+
+    a.minX = minX
+    a.maxX = maxX
+    a.minY = minY
+    a.maxY = maxY
+    a
   }
 
   def computeBoundaries(bodies: Seq[Body]): Boundaries = timeStats.timed("boundaries") {

@@ -44,9 +44,9 @@ package object barneshut {
   }
 
   case class Empty(centerX: Float, centerY: Float, size: Float) extends Quad {
-    def massX: Float = 0
+    def massX: Float = centerX
 
-    def massY: Float = 0
+    def massY: Float = centerY
 
     def mass: Float = 0
 
@@ -80,7 +80,9 @@ package object barneshut {
 
   case class Leaf(centerX: Float, centerY: Float, size: Float, bodies: Seq[Body])
     extends Quad {
-    val (mass: Float, massX: Float, massY: Float) = (mass: Float, massX: Float, massY: Float)
+    val mass: Float = bodies.map(_.mass).foldLeft(0f)(_ + _)
+    val massX: Float = bodies.map(_.x).foldLeft(0f)(_ + _) / bodies.size
+    val massY: Float = bodies.map(_.y).foldLeft(0f)(_ + _) / bodies.size
     val total: Int = bodies.size
 
     def insert(b: Body): Quad = {
@@ -142,12 +144,12 @@ package object barneshut {
         case Empty(_, _, _) =>
         // no force
         case Leaf(_, _, _, bodies) =>
-        // add force contribution of each body by calling addForce
+          // add force contribution of each body by calling addForce
           for (b <- bodies)
             addForce(b.mass, b.x, b.y)
         case Fork(nw, ne, sw, se) =>
-        // see if node is far enough from the body,
-        // or recursion is needed
+          // see if node is far enough from the body,
+          // or recursion is needed
           if (nw.size / distance(x, y, quad.massX, quad.massY) < theta)
             addForce(quad.mass, quad.massX, quad.massY)
           else {
@@ -186,11 +188,10 @@ package object barneshut {
     def apply(x: Int, y: Int) = matrix(y * sectorPrecision + x)
 
     def combine(that: SectorMatrix): SectorMatrix = {
-      val newMatrix = new Array[ConcBuffer[Body]](sectorPrecision * sectorPrecision)
       for (i <- 0 until matrix.length) {
-        matrix(i).combine(that.matrix(i))
-        buf2 <- that.matrix
-      } buf1.combine(buf2)
+        matrix(i) = matrix(i).combine(that.matrix(i))
+      }
+      this
     }
 
     def toQuad(parallelism: Int): Quad = {
