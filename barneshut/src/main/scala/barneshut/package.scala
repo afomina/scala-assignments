@@ -58,12 +58,12 @@ package object barneshut {
   case class Fork(
                    nw: Quad, ne: Quad, sw: Quad, se: Quad
                    ) extends Quad {
-    val centerX: Float = nw.centerX + nw.size / 2
-    val centerY: Float = nw.centerY + nw.size / 2
-    val size: Float = nw.size * 2
+    val centerX: Float = (nw.centerX + ne.centerX + sw.centerX + se.centerX) / 4
+    val centerY: Float = (nw.centerY + ne.centerY + sw.centerY + se.centerY) / 4
+    val size: Float = nw.size + ne.size
     val mass: Float = nw.mass + ne.mass + sw.mass + se.mass
-    val massX: Float = (nw.mass * nw.massX + ne.mass * ne.massX + sw.mass * sw.massX + se.mass * se.massX) / mass
-    val massY: Float = (nw.mass * nw.massY + ne.mass * ne.massY + sw.mass * sw.massY + se.mass * se.massY) / mass
+    val massX: Float = if (mass == 0) centerX else (nw.mass * nw.massX + ne.mass * ne.massX + sw.mass * sw.massX + se.mass * se.massX) / mass
+    val massY: Float = if (mass == 0) centerY else (nw.mass * nw.massY + ne.mass * ne.massY + sw.mass * sw.massY + se.mass * se.massY) / mass
     val total: Int = nw.total + ne.total + sw.total + se.total
 
     def insert(b: Body): Fork = {
@@ -91,7 +91,7 @@ package object barneshut {
           Empty(centerX, centerY, size), Empty(centerX, centerY, size))
         for (item <- bodies)
           temp = temp.insert(item)
-        temp
+        temp.insert(b)
       } else Leaf(centerX, centerY, size, bodies.:+(b))
     }
   }
@@ -150,7 +150,7 @@ package object barneshut {
         case Fork(nw, ne, sw, se) =>
           // see if node is far enough from the body,
           // or recursion is needed
-          if (nw.size / distance(x, y, quad.massX, quad.massY) < theta)
+          if (quad.size / distance(x, y, quad.massX, quad.massY) < theta)
             addForce(quad.mass, quad.massX, quad.massY)
           else {
             traverse(nw)
@@ -181,9 +181,9 @@ package object barneshut {
 
     def +=(b: Body): SectorMatrix = {
       // if (b.x <= boundaries.maxX && b.x >= boundaries.minX && b.y >= boundaries.minY && b.y <= boundaries.maxY)
-      val x = Math.min(sectorPrecision - 1, (b.x - boundaries.minX) / (boundaries.width * sectorPrecision))
-      val y = Math.min(sectorPrecision - 1, (b.y - boundaries.minY) / (boundaries.height * sectorPrecision))
-      matrix((y * sectorPrecision + x).toInt) += b
+      val x = Math.min(sectorPrecision - 1, ((b.x - boundaries.minX) / (boundaries.width * sectorPrecision)).toInt)
+      val y = Math.min(sectorPrecision - 1, ((b.y - boundaries.minY) / (boundaries.height * sectorPrecision)).toInt)
+      apply(x, y) += b
       this
     }
 
