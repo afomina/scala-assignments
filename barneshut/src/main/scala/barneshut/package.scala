@@ -180,8 +180,10 @@ package object barneshut {
     for (i <- 0 until matrix.length) matrix(i) = new ConcBuffer
 
     def +=(b: Body): SectorMatrix = {
-      if (b.x <= boundaries.maxX && b.x >= boundaries.minX && b.y >= boundaries.minY && b.y <= boundaries.maxY)
-        matrix((b.y * sectorPrecision + b.x).toInt) += b
+      // if (b.x <= boundaries.maxX && b.x >= boundaries.minX && b.y >= boundaries.minY && b.y <= boundaries.maxY)
+      val x = Math.min(sectorPrecision - 1, (b.x - boundaries.minX) / (boundaries.width * sectorPrecision))
+      val y = Math.min(sectorPrecision - 1, (b.y - boundaries.minY) / (boundaries.height * sectorPrecision))
+      matrix((y * sectorPrecision + x).toInt) += b
       this
     }
 
