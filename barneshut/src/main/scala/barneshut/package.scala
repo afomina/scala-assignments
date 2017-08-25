@@ -48,7 +48,7 @@ package object barneshut {
 
     def massY: Float = centerY
 
-    def mass: Float = 0
+    def mass: Float = 0f
 
     def total: Int = 0
 
@@ -182,9 +182,9 @@ package object barneshut {
 
     def +=(b: Body): SectorMatrix = {
       // if (b.x <= boundaries.maxX && b.x >= boundaries.minX && b.y >= boundaries.minY && b.y <= boundaries.maxY)
-      val x = Math.min(sectorPrecision - 1, ((b.x - boundaries.minX) / (boundaries.width * sectorPrecision)).toInt)
-      val y = Math.min(sectorPrecision - 1, ((b.y - boundaries.minY) / (boundaries.height * sectorPrecision)).toInt)
-      matrix((y * sectorPrecision + x).toInt) += b
+      val x = Math.min(sectorPrecision - 1, ((b.x - boundaries.minX) / sectorSize).toInt)
+      val y = Math.min(sectorPrecision - 1, ((b.y - boundaries.minY) / sectorSize).toInt)
+      matrix(y * sectorPrecision + x) += b
       this
     }
 
