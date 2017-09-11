@@ -74,8 +74,11 @@ object WikipediaRanking {
    *   Note: this operation is long-running. It can potentially run for
    *   several seconds.
    */
-  def rankLangsReduceByKey(langs: List[String], rdd: RDD[WikipediaArticle]): List[(String, Int)] = langs.map(lang =>
-    (lang, rdd.filter(_.mentionsLanguage(lang)).collect().size))
+  def rankLangsReduceByKey(langs: List[String], rdd: RDD[WikipediaArticle]): List[(String, Int)] = {
+    rdd.cache()
+    langs.map(lang =>
+      (lang, rdd.filter(_.mentionsLanguage(lang)).collect().size)).sortBy(-_._2)
+  }
 
   def main(args: Array[String]) {
 
