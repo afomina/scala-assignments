@@ -122,7 +122,9 @@ class StackOverflow extends Serializable {
       }
     }
 
-    ???
+    scored.filter(_._1.tags.isDefined).map {
+      case(q, h) => (firstLangInTag(q.tags, langs).get, h)
+    }.groupByKey().mapValues(_.max)
   }
 
 
