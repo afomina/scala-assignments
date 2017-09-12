@@ -100,7 +100,9 @@ class StackOverflow extends Serializable {
       highScore
     }
 
-    ???
+    grouped.map {
+      case (qid, list) => (list.head._1, answerHighScore(list.map(_._2).toArray))
+    }
   }
 
 
