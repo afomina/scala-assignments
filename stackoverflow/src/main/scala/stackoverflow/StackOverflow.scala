@@ -1,11 +1,16 @@
 package stackoverflow
 
+import java.io
+
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
+import stackoverflow.StackOverflow.conf
+
 import annotation.tailrec
 import scala.reflect.ClassTag
+import scala.reflect.io.File
 
 /** A raw stackoverflow posting, either a question or an answer */
 case class Posting(postingType: Int, id: Int, acceptedAnswer: Option[Int], parentId: Option[QID], score: Int, tags: Option[String]) extends Serializable
@@ -15,7 +20,7 @@ case class Posting(postingType: Int, id: Int, acceptedAnswer: Option[Int], paren
 object StackOverflow extends StackOverflow {
 
   @transient lazy val conf: SparkConf = new SparkConf().setMaster("local").setAppName("StackOverflow")
-  @transient lazy val sc: SparkContext = new SparkContext(conf)
+  //@transient lazy val sc: SparkContext = new SparkContext(conf)
 
   /** Main function */
   def main(args: Array[String]): Unit = {
@@ -36,7 +41,7 @@ object StackOverflow extends StackOverflow {
 
 /** The parsing and kmeans methods */
 class StackOverflow extends Serializable {
-
+  @transient lazy val sc: SparkContext = new SparkContext(conf)
   /** Languages */
   val langs =
     List(
@@ -178,8 +183,21 @@ class StackOverflow extends Serializable {
   /** Main kmeans computation */
   @tailrec final def kmeans(means: Array[(Int, Int)], vectors: RDD[(Int, Int)], iter: Int = 1, debug: Boolean = false): Array[(Int, Int)] = {
     val newMeans = means.clone()
-    vectors.map(v => (findClosest(v, means), v)).groupByKey()
-      .mapValues(averageVectors).collect().foreach(p => newMeans.update(p._1, p._2)) // you need to compute newMeans
+    var smth = vectors.map(v => (findClosest(v, means), v)).groupByKey()
+      .mapValues(averageVectors)
+    val file = new File(new io.File("test.csv"))
+    if (file.exists) file.delete()
+    smth.saveAsTextFile("test.csv")
+
+//    for (p <- rdd_iterate(smth)) {
+//      newMeans.update(p._1, p._2)
+//    }
+
+      sc.textFile("test.csv").map(line => {
+      val ar = line.split(",()")
+        (ar(0).toInt, (ar(1).toInt, ar(2).toInt))
+      })
+        .foreach(p => newMeans.update(p._1, p._2)) // you need to compute newMeans
 
     val distance = euclideanDistance(means, newMeans)
 
@@ -212,6 +230,23 @@ class StackOverflow extends Serializable {
   //  Kmeans utilities:
   //
   //
+
+  def rdd_iterate(rdd: RDD[(Int, (Int, Int))], chunk_size : Int = 1000000): List[(Int, (Int, Int))]  = {
+    val indexed_rows = rdd.zipWithIndex().cache()
+    val count = indexed_rows.count()
+    print("Will iterate through RDD of count {}".format(count))
+    var start = 0
+    var end = start + chunk_size
+    var result: List[(Int, (Int, Int))] = List()
+    while (start < count) {
+      print("Grabbing new chunk: start = {}, end = {}".format(start, end))
+      val chunk = indexed_rows.filter(r => r._2 >= start && r._2 < end).collect()
+      result = result ::: chunk.map(_._1).toList
+      start = end
+      end = start + chunk_size
+    }
+    result
+  }
 
   /** Decide whether the kmeans clustering converged */
   def converged(distance: Double) =
