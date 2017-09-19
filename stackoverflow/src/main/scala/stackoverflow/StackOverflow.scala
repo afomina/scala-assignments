@@ -127,7 +127,7 @@ class StackOverflow extends Serializable {
 
     scored.filter(_._1.tags.isDefined).map {
       case (q, h) => (firstLangInTag(q.tags, langs).get * langSpread, h)
-    }
+    }.persist()
   }
 
 
@@ -185,19 +185,13 @@ class StackOverflow extends Serializable {
     val newMeans = means.clone()
     var smth = vectors.map(v => (findClosest(v, means), v)).groupByKey()
       .mapValues(averageVectors)
-    val file = new File(new io.File("test.csv"))
-    if (file.exists) file.delete()
-    smth.saveAsTextFile("test.csv")
 
 //    for (p <- rdd_iterate(smth)) {
 //      newMeans.update(p._1, p._2)
 //    }
 
-      sc.textFile("test.csv").map(line => {
-      val ar = line.split(",()")
-        (ar(0).toInt, (ar(1).toInt, ar(2).toInt))
-      })
-        .foreach(p => newMeans.update(p._1, p._2)) // you need to compute newMeans
+
+          .collect().foreach(p => newMeans.update(p._1, p._2)) // you need to compute newMeans
 
     val distance = euclideanDistance(means, newMeans)
 
@@ -318,7 +312,7 @@ class StackOverflow extends Serializable {
     val langPercent: Double = (vs.count(_._1 == langId) / vs.size) * 100 // percent of the questions in the most common language
     val clusterSize: Int = vs.size
       val sorted = vs.map(_._2).toList.sorted
-      val medianScore: Int = if (clusterSize == 1) sorted(0) else if (clusterSize % 2 == 0) sorted(clusterSize / 2) else (sorted(clusterSize / 2 - 1) + sorted(clusterSize / 2 + 1)) / 2
+      val medianScore: Int = if (clusterSize % 2 == 0) (sorted(clusterSize / 2 - 1) + sorted(clusterSize / 2 )) / 2 else sorted(clusterSize / 2)
 
       (langLabel, langPercent, clusterSize, medianScore)
     }
