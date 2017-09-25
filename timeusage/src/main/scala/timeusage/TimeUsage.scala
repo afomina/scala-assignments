@@ -174,7 +174,7 @@ object TimeUsage {
   def timeUsageGrouped(summed: DataFrame): DataFrame = {
     summed.groupBy("working", "sex", "age").agg(round(avg("primaryNeeds"), 1).as("primaryNeeds"),
     round(avg("work"), 1).as("work"),
-    round(avg("other"), 1).as("other"))
+    round(avg("other"), 1).as("other")).orderBy('working, 'sex, 'age)
       /*select(col("working"), col("sex"), col("age"),
       summed.select(round(sum("primaryNeeds") / count("primaryNeeds"), 1))
         .as("primaryNeeds"))*/
@@ -194,7 +194,7 @@ object TimeUsage {
     * @param viewName Name of the SQL view to use
     */
   def timeUsageGroupedSqlQuery(viewName: String): String =
-    s"select working, sex, age, round(avg(primaryNeeds), 1) as primaryNeeds, round(avg(work), 1) as work, round(avg(other), 1) as other from $viewName group by working, sex, age"
+    s"select working, sex, age, round(avg(primaryNeeds), 1) as primaryNeeds, round(avg(work), 1) as work, round(avg(other), 1) as other from $viewName group by working, sex, age order by working, sex, age"
 
   /**
     * @return A `Dataset[TimeUsageRow]` from the “untyped” `DataFrame`
