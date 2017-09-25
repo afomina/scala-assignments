@@ -146,9 +146,9 @@ object TimeUsage {
     // Hint: you want to create a complex column expression that sums other columns
     //       by using the `+` operator between them
     // Hint: don’t forget to convert the value to hours
-    val primaryNeedsProjection: Column = primaryNeedsColumns.sum.divide(60).as("primaryNeeds")
-    val workProjection: Column = workColumns.sum.divide(60).as("work")
-    val otherProjection: Column = otherColumns.sum.divide(60).as("other")
+    val primaryNeedsProjection: Column = primaryNeedsColumns.reduce(_ + _).divide(60).as("primaryNeeds")
+    val workProjection: Column = workColumns.reduce(_ + _).divide(60).as("work")
+    val otherProjection: Column = otherColumns.reduce(_ + _).divide(60).as("other")
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
       .where($"telfs" <= 4) // Discard people who are not in labor force
@@ -194,7 +194,8 @@ object TimeUsage {
     * @param viewName Name of the SQL view to use
     */
   def timeUsageGroupedSqlQuery(viewName: String): String =
-    ???
+    "select working, sex, age, round(avg(primaryNeeds), 1), round(avg(work), 1), round(avg(other), 1) from " +
+  viewName + " group by working, sex, age"
 
   /**
     * @return A `Dataset[TimeUsageRow]` from the “untyped” `DataFrame`
@@ -204,7 +205,7 @@ object TimeUsage {
     * cast them at the same time.
     */
   def timeUsageSummaryTyped(timeUsageSummaryDf: DataFrame): Dataset[TimeUsageRow] =
-    ???
+    timeUsageSummaryDf.as[TimeUsageRow]
 
   /**
     * @return Same as `timeUsageGrouped`, but using the typed API when possible
@@ -219,7 +220,7 @@ object TimeUsage {
     */
   def timeUsageGroupedTyped(summed: Dataset[TimeUsageRow]): Dataset[TimeUsageRow] = {
     import org.apache.spark.sql.expressions.scalalang.typed
-    ???
+    summed.groupBy("working", "sex", "age").agg(avg("primaryNeeds")).agg(avg("work")).agg(avg("work")).as[TimeUsageRow]
   }
 }
 
