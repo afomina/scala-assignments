@@ -136,17 +136,19 @@ object TimeUsage {
     // more sense for our use case
     // Hint: you can use the `when` and `otherwise` Spark functions
     // Hint: don’t forget to give your columns the expected name with the `as` method
-    val workingStatusProjection: Column = ???
-    val sexProjection: Column = ???
-    val ageProjection: Column = ???
+    val workingStatusProjection: Column = when(col("telfs") >= lit(1) && col("telfs") < lit(3), "working")
+      .otherwise("not working").as("working")
+    val sexProjection: Column = when(col("tesex") === lit(1), "male").otherwise("female").as("sex")
+    val ageProjection: Column = when(col("teage") <= 22 && col("teage") >= 15, "young").
+      when(col("teage") <= 55 && col("teage") >= 23, "active").otherwise("elder").as("age")
 
     // Create columns that sum columns of the initial dataset
     // Hint: you want to create a complex column expression that sums other columns
     //       by using the `+` operator between them
     // Hint: don’t forget to convert the value to hours
-    val primaryNeedsProjection: Column = ???
-    val workProjection: Column = ???
-    val otherProjection: Column = ???
+    val primaryNeedsProjection: Column = primaryNeedsColumns.sum.divide(60).as("primaryNeeds")
+    val workProjection: Column = workColumns.sum.divide(60).as("work")
+    val otherProjection: Column = otherColumns.sum.divide(60).as("other")
     df
       .select(workingStatusProjection, sexProjection, ageProjection, primaryNeedsProjection, workProjection, otherProjection)
       .where($"telfs" <= 4) // Discard people who are not in labor force
@@ -170,7 +172,12 @@ object TimeUsage {
     * Finally, the resulting DataFrame should be sorted by working status, sex and age.
     */
   def timeUsageGrouped(summed: DataFrame): DataFrame = {
-    ???
+    summed.groupBy("working", "sex", "age").agg(round(avg("primaryNeeds"), 1))
+    .agg(round(avg("work"), 1))
+    .agg(round(avg("other"), 1))
+      /*select(col("working"), col("sex"), col("age"),
+      summed.select(round(sum("primaryNeeds") / count("primaryNeeds"), 1))
+        .as("primaryNeeds"))*/
   }
 
   /**
