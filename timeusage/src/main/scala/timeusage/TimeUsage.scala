@@ -172,9 +172,9 @@ object TimeUsage {
     * Finally, the resulting DataFrame should be sorted by working status, sex and age.
     */
   def timeUsageGrouped(summed: DataFrame): DataFrame = {
-    summed.groupBy("working", "sex", "age").agg(round(avg("primaryNeeds"), 1))
-    .agg(round(avg("work"), 1))
-    .agg(round(avg("other"), 1))
+    summed.groupBy("working", "sex", "age").agg(round(avg("primaryNeeds"), 1)).as("primaryNeeds")
+    .agg(round(avg("working"), 1)).as("work")
+    .agg(round(avg("other"), 1)).as("other")
       /*select(col("working"), col("sex"), col("age"),
       summed.select(round(sum("primaryNeeds") / count("primaryNeeds"), 1))
         .as("primaryNeeds"))*/
@@ -194,8 +194,8 @@ object TimeUsage {
     * @param viewName Name of the SQL view to use
     */
   def timeUsageGroupedSqlQuery(viewName: String): String =
-    "select working, sex, age, round(avg(primaryNeeds), 1), round(avg(work), 1), round(avg(other), 1) from " +
-  viewName + " group by working, sex, age"
+    s"select working, sex, age, round(avg(primaryNeeds), 1) as primaryNeeds, round(avg(working), 1) as work, round(avg(other), 1) as other from " +
+  "$viewName group by working, sex, age"
 
   /**
     * @return A `Dataset[TimeUsageRow]` from the “untyped” `DataFrame`
@@ -219,8 +219,16 @@ object TimeUsage {
     * Hint: you should use the `groupByKey` and `typed.avg` methods.
     */
   def timeUsageGroupedTyped(summed: Dataset[TimeUsageRow]): Dataset[TimeUsageRow] = {
-    import org.apache.spark.sql.expressions.scalalang.typed
-    summed.groupBy("working", "sex", "age").agg(avg("primaryNeeds")).agg(avg("work")).agg(avg("work")).as[TimeUsageRow]
+    import org.apache.spark.sql.expressions.scalalang.typed.avg
+    summed
+      .groupByKey(row => (row.working, row.sex, row.age))
+      .agg(
+        avg(_.primaryNeeds),
+        avg(_.work),
+        avg(_.other)
+      )//.map {
+      //case ((working, sex, age), primaryNeeds, work, other) => TimeUsageRow(working, sex, age,  primaryNeeds, work, other)}
+    .orderBy('working, 'sex, 'age).as[TimeUsageRow]
   }
 }
 
