@@ -19,6 +19,8 @@ object Extraction {
       .config("spark.master", "local")
       .getOrCreate()
 
+  import spark.implicits._
+
   /**
     * @param year             Year number
     * @param stationsFile     Path of the stations resource file to use (e.g. "/stations.csv")
@@ -46,9 +48,19 @@ object Extraction {
     * @return A sequence containing, for each location, the average temperature over the year.
     */
   def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Temperature)]): Iterable[(Location, Temperature)] = {
-    spark.sqlContext.createDataFrame(
-      spark.sparkContext.parallelize(records.toList)
-    ).groupBy("Location").agg(avg("Temperature")).map(row => (row.getAs(1), row.getAs(2))).collect()
+    def aver(list: List[Double]) : Double = list.foldRight(0.0)(_ + _) / list.size
+
+    records.map(t => (t._2, t._3)).groupBy(_._1)
+      .map(z => (z._1, aver(z._2.map(_._2).toList)))
+
+      /*.aggregate((Location(0, 0), 0.0: Temperature))(
+      (acc, tuple) => (tuple._1, acc._2 + tuple._2.map(_._2).sum / tuple._2.size),
+      (acc1, acc2) => (acc1._1, acc1._2 + acc2._2)
+    )*/
+
+//    spark.sqlContext.createDataFrame(
+//      spark.sparkContext.parallelize(records.toList)
+//    ).groupBy("Location").agg(avg("Temperature")).map(row => (row.getAs(1), row.getAs(2))).collect()
   }
 
   def read(resource: String, headerColumns: List[String]): DataFrame = {
