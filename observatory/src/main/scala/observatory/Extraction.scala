@@ -71,7 +71,7 @@ object Extraction {
 
     val data =
       rdd
-        .mapPartitionsWithIndex((i, it) => if (i == 0) it.drop(1) else it) // skip the header line
+        //.mapPartitionsWithIndex((i, it) => if (i == 0) it.drop(1) else it) // skip the header line
         .map(_.split(",").to[List])
         .map(row)
 
