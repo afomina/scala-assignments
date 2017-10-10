@@ -5,6 +5,7 @@ import java.time.LocalDate
 
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.apache.spark.sql.functions._
 
 /**
   * 1st milestone: data extraction
@@ -29,7 +30,15 @@ object Extraction {
     val tempDf = read(temperaturesFile, List("STN", "WBAN", "Month", "Day", "Temp"))
     val stationsDf = read(stationsFile, List("STN", "WBAN", "Lat", "Long"))
 
+    val df = tempDf.join(stationsDf, tempDf("STN") === stationsDf("STN")
+      && tempDf("WBAN") === stationsDf("WBAN"))
 
+    def celsius(temp: Double): Double = (temp - 32) / 1.8
+
+    df.map {
+      case Row(stn: Double, wban: Double, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
+        (LocalDate.of(year, month, day), Location(lat, long), celsius(temp))
+    }.collect()
   }
 
   /**
@@ -37,7 +46,9 @@ object Extraction {
     * @return A sequence containing, for each location, the average temperature over the year.
     */
   def locationYearlyAverageRecords(records: Iterable[(LocalDate, Location, Temperature)]): Iterable[(Location, Temperature)] = {
-    ???
+    spark.sqlContext.createDataFrame(
+      spark.sparkContext.parallelize(records.toList)
+    ).groupBy("Location").agg(avg("Temperature")).map(row => (row.getAs(1), row.getAs(2))).collect()
   }
 
   def read(resource: String, headerColumns: List[String]): DataFrame = {
