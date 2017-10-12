@@ -37,10 +37,10 @@ object Extraction {
 
     def celsius(temp: Double): Double = (temp - 32) / 1.8
 
-    df.map {
-      case Row(stn: Double, wban: Double, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
+    df.collect().map {
+      case Row(stn: String, wban: String, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
         (LocalDate.of(year, month, day), Location(lat, long), celsius(temp))
-    }.collect().toSeq
+    }.toSeq
   }
 
   /**
@@ -82,8 +82,8 @@ object Extraction {
     Paths.get(getClass.getResource(resource).toURI).toString
 
   def dfSchema(columnNames: List[String]): StructType =
-    StructType(StructField(columnNames.head, StringType, nullable = false) ::
-      columnNames.tail.map(name => StructField(name, DoubleType, nullable = false)))
+    StructType(StructField(columnNames.head, StringType, nullable = true) :: StructField(columnNames.tail.head, StringType, nullable = true) ::
+      columnNames.tail.tail.map(name => StructField(name, DoubleType, nullable = true)))
 
   def row(line: List[String]): Row =
     Row.fromSeq(line) //Row(line.head.toString :: line.tail.map(_.toDouble): _*)
