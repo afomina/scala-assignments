@@ -86,5 +86,5 @@ object Extraction {
       columnNames.tail.tail.map(name => StructField(name, DoubleType, nullable = true)))
 
   def row(line: List[String]): Row =
-    Row.fromSeq(line) //Row(line.head.toString :: line.tail.map(_.toDouble): _*)
+   Row(line.head.toString :: line.tail.head.toString :: line.tail.tail.map(_.toDouble): _*)
 }
