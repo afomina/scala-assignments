@@ -40,7 +40,7 @@ object Extraction {
     df.map {
       case Row(stn: Double, wban: Double, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
         (LocalDate.of(year, month, day), Location(lat, long), celsius(temp))
-    }.collect()
+    }.collect().toSeq
   }
 
   /**
