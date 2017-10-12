@@ -30,7 +30,7 @@ object Extraction {
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String)
   : Iterable[(LocalDate, Location, Temperature)] = {
     val tempDf = read(temperaturesFile, List("STN", "WBAN", "Month", "Day", "Temp"))
-    val stationsDf = read(stationsFile, List("STN", "WBAN", "Lat", "Long"))
+    val stationsDf = read(stationsFile, List("STN", "WBAN", "Lat", "Long")).filter(row => row.getDouble(2) != null && row.getDouble(3) != null)
 
     val df = tempDf.join(stationsDf, tempDf("STN") === stationsDf("STN")
       && tempDf("WBAN") === stationsDf("WBAN"))
