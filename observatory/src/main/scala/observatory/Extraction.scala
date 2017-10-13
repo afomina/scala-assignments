@@ -31,8 +31,8 @@ object Extraction {
     */
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String)
   : Iterable[(LocalDate, Location, Temperature)] = {
-    val tempDf = read(temperaturesFile, List("STN", "WBAN", "Month", "Day", "Temp"))
-    val stationsDf = read(stationsFile, List("STN", "WBAN", "Lat", "Long")).filter(!col("Lat").isNull && !col("Long").isNull)
+    val tempDf = read(temperaturesFile, dfSchema(List("STN", "WBAN", "Month", "Day", "Temp")))
+    val stationsDf = read(stationsFile, stationsSchema(List("STN", "WBAN", "Lat", "Long"))).filter(!col("Lat").isNull && !col("Long").isNull)
 
     val df = tempDf.join(stationsDf, tempDf("STN") === stationsDf("STN")
       && tempDf("WBAN") === stationsDf("WBAN"))
@@ -65,11 +65,8 @@ object Extraction {
 //    ).groupBy("Location").agg(avg("Temperature")).map(row => (row.getAs(1), row.getAs(2))).collect()
   }
 
-  def read(resource: String, headerColumns: List[String]): DataFrame = {
+  def read(resource: String, schema: StructType): DataFrame = {
     val rdd = spark.sparkContext.textFile(fsPath(resource))
-
-    // Compute the schema based on the first line of the CSV file
-    val schema = dfSchema(headerColumns)
 
     val data =
       rdd
@@ -86,6 +83,10 @@ object Extraction {
   def dfSchema(columnNames: List[String]): StructType =
     StructType(StructField(columnNames.head, StringType, nullable = true) :: StructField(columnNames.tail.head, StringType, nullable = true) ::
       columnNames.tail.tail.map(name => StructField(name, DoubleType, nullable = true)))
+
+  def stationsSchema(columnNames: List[String]): StructType =
+    StructType(StructField(columnNames.head, StringType, nullable = true) :: StructField(columnNames.tail.head, StringType, nullable = true) ::
+      columnNames.tail.tail.map(name => StructField(name, DoubleType, nullable = false)))
 
   def row(line: List[String]): Row =
    Row(line.head.toString :: line.tail.head.toString :: line.tail.tail.map(_.toDouble): _*)
