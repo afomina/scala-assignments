@@ -53,7 +53,7 @@ object Extraction {
     def aver(list: List[Double]) : Double = list.foldRight(0.0)(_ + _) / list.size
 
     records.map(t => (t._2, t._3)).groupBy(_._1)
-      .map(z => (z._1, aver(z._2.map(_._2).toList)))
+      .map(z => (z._1, aver(z._2.map(_._2).toList))).toSeq
 
       /*.aggregate((Location(0, 0), 0.0: Temperature))(
       (acc, tuple) => (tuple._1, acc._2 + tuple._2.map(_._2).sum / tuple._2.size),
