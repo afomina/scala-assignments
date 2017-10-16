@@ -31,8 +31,8 @@ object Extraction {
     */
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String)
   : Iterable[(LocalDate, Location, Temperature)] = {
-    val tempDf = read(temperaturesFile, dfSchema(List("STN", "WBAN", "Month", "Day", "Temp")))
-    val stationsDf = read(stationsFile, stationsSchema(List("STN", "WBAN", "Lat", "Long"))).filter(!col("Lat").isNull && !col("Long").isNull)
+    val tempDf = readTemp(temperaturesFile, dfSchema(List("STN", "WBAN", "Month", "Day", "Temp")))
+    val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull && col("Lat") != 0.0 && col("Long")!=0.0)
 
     val df = tempDf.join(stationsDf, tempDf("STN") === stationsDf("STN")
       && tempDf("WBAN") === stationsDf("WBAN"))
@@ -65,8 +65,9 @@ object Extraction {
 //    ).groupBy("Location").agg(avg("Temperature")).map(row => (row.getAs(1), row.getAs(2))).collect()
   }
 
-  def read(resource: String, schema: StructType): DataFrame = {
-    val rdd = spark.sparkContext.textFile(fsPath(resource))
+  def readTemp(resource: String, schema: StructType): DataFrame = {
+    spark.read.csv(resource).select('_c1.alias("STN"), '_c2.alias("WBAN"), '_c3.alias("month"), '_c4.alias("day"), '_c5.alias("temp"))
+   /* val rdd = spark.sparkContext.textFile(fsPath(resource))
 
     val data =
       rdd
@@ -74,8 +75,11 @@ object Extraction {
         .map(_.split(",").to[List])
         .map(row)
 
-      spark.createDataFrame(data, schema)
+      spark.createDataFrame(data, schema)*/
   }
+
+  def readStations(resource: String): DataFrame =
+    spark.read.csv(resource).select('_c1.alias("STN"), '_c2.alias("WBAN"), '_c3.alias("lat"), '_c4.alias("long")).where(col("lat").isNotNull && col("long").isNotNull)
 
   def fsPath(resource: String): String =
     Paths.get(getClass.getResource(resource).toURI).toString
@@ -89,5 +93,8 @@ object Extraction {
       columnNames.tail.tail.map(name => StructField(name, DoubleType, nullable = false)))
 
   def row(line: List[String]): Row =
-   Row(line.head.toString :: line.tail.head.toString :: line.tail.tail.map(_.toDouble): _*)
+   Row(line.head :: line.tail.head :: line.tail.tail.map(_.toDouble).toList)
+
+//  def tempRow(line: List[String]): Row =
+//    Row(line)
 }
