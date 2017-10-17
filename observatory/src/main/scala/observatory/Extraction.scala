@@ -3,6 +3,7 @@ package observatory
 import java.nio.file.Paths
 import java.time.LocalDate
 
+import monix.types.utils
 import org.apache.spark.sql.types.{DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.apache.spark.sql.functions._
@@ -66,7 +67,7 @@ object Extraction {
   }
 
   def readTemp(resource: String, schema: StructType): DataFrame = {
-    spark.read.csv(resource).select('_c1.alias("STN"), '_c2.alias("WBAN"), '_c3.alias("month"), '_c4.alias("day"), '_c5.alias("temp"))
+    spark.read.csv(getClass.getResource(resource).getPath).select('_c0.alias("STN"), '_c1.alias("WBAN"), '_c2.alias("month"), '_c3.alias("day"), '_c4.alias("temp"))
    /* val rdd = spark.sparkContext.textFile(fsPath(resource))
 
     val data =
@@ -79,7 +80,7 @@ object Extraction {
   }
 
   def readStations(resource: String): DataFrame =
-    spark.read.csv(resource).select('_c1.alias("STN"), '_c2.alias("WBAN"), '_c3.alias("lat"), '_c4.alias("long")).where(col("lat").isNotNull && col("long").isNotNull)
+    spark.read.csv(resource).select('_c0.alias("STN"), '_c1.alias("WBAN"), '_c2.alias("lat"), '_c3.alias("long")).where(col("lat").isNotNull && col("long").isNotNull)
 
   def fsPath(resource: String): String =
     Paths.get(getClass.getResource(resource).toURI).toString
