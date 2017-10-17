@@ -80,7 +80,7 @@ object Extraction {
   }
 
   def readStations(resource: String): DataFrame =
-    spark.read.csv(resource).select('_c0.alias("STN"), '_c1.alias("WBAN"), '_c2.alias("lat"), '_c3.alias("long")).where(col("lat").isNotNull && col("long").isNotNull)
+    spark.read.csv(getClass.getResource(resource).getPath).select('_c0.alias("STN"), '_c1.alias("WBAN"), '_c2.alias("lat"), '_c3.alias("long")).where(col("lat").isNotNull && col("long").isNotNull)
 
   def fsPath(resource: String): String =
     Paths.get(getClass.getResource(resource).toURI).toString
