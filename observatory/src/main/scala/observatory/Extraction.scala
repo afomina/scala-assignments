@@ -35,13 +35,12 @@ object Extraction {
     val tempDf = readTemp(temperaturesFile, dfSchema(List("STN", "WBAN", "Month", "Day", "Temp")))
     val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull && col("Lat") != 0.0 && col("Long")!=0.0)
 
-    val df = tempDf.join(stationsDf, tempDf("STN") === stationsDf("STN")
-      && tempDf("WBAN") === stationsDf("WBAN"))
+    val df = tempDf.join(stationsDf, usingColumn = "id")
 
     def celsius(temp: Double): Double = (temp - 32) / 1.8
 
     df.collect().map {
-      case Row(stn: String, wban: String, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
+      case Row(id: String, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
         (LocalDate.of(year, month, day), Location(lat, long), celsius(temp))
     }.toSeq
   }
@@ -67,7 +66,7 @@ object Extraction {
   }
 
   def readTemp(resource: String, schema: StructType): DataFrame = {
-    spark.read.csv(getClass.getResource(resource).getPath).select('_c0.alias("STN"), '_c1.alias("WBAN"), '_c2.alias("month"), '_c3.alias("day"), '_c4.alias("temp"))
+    spark.read.csv(getClass.getResource(resource).getPath).select(('_c0 + '_c1).alias("id"), '_c2.alias("month"), '_c3.alias("day"), '_c4.alias("temp"))
    /* val rdd = spark.sparkContext.textFile(fsPath(resource))
 
     val data =
@@ -80,7 +79,7 @@ object Extraction {
   }
 
   def readStations(resource: String): DataFrame =
-    spark.read.csv(getClass.getResource(resource).getPath).select('_c0.alias("STN"), '_c1.alias("WBAN"), '_c2.alias("lat"), '_c3.alias("long")).where(col("lat").isNotNull && col("long").isNotNull)
+    spark.read.csv(getClass.getResource(resource).getPath).select(('_c0 + '_c1).alias("id"), '_c2.alias("lat"), '_c3.alias("long")).where(col("lat").isNotNull && col("long").isNotNull)
 
   def fsPath(resource: String): String =
     Paths.get(getClass.getResource(resource).toURI).toString
