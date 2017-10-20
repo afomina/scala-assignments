@@ -17,13 +17,31 @@ object Visualization {
     6371 * angle
   }
 
+  def distance(loc1: Location, loc2: Location) = distance(loc1.lat, loc1.lon, loc2.lat, loc2.lon)
+
   /**
    * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
    * @param location Location where to predict the temperature
    * @return The predicted temperature at `location`
    */
   def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
-    ???
+    def wi(x: Location) = 1 / pow(distance(x, location), p)
+
+    val i = checkZero(temperatures.map(_._1), location)
+    if (i == -1) {
+      temperatures.map(t => wi(t._1) * t._2).sum / temperatures.map(t => wi(t._1)).sum
+    } else temperatures.toList(i)._2
+  }
+
+  def checkZero(locations: Iterable[Location], x: Location): Integer = {
+    var list = locations
+    var i = 0
+    while (!list.isEmpty) {
+      if (distance(x, list.head) == 0) return i
+      i = i + 1
+      list = list.tail
+    }
+    -1
   }
 
   /**
