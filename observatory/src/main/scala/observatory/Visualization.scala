@@ -17,7 +17,7 @@ object Visualization {
     6371 * angle
   }
 
-  def distance(loc1: Location, loc2: Location) = distance(loc1.lat, loc1.lon, loc2.lat, loc2.lon)
+  def distance(loc1: Location, loc2: Location): Double = distance(loc1.lat, loc1.lon, loc2.lat, loc2.lon)
 
   /**
    * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
