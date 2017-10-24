@@ -40,7 +40,7 @@ object Extraction {
     def celsius(temp: Double): Double = (temp - 32) / 1.8
 
     df.collect().map {
-      case Row(id: String, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
+      case Row(id: Double, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
         (LocalDate.of(year, month, day), Location(lat, long), celsius(temp))
     }.toSeq
   }
@@ -66,7 +66,13 @@ object Extraction {
   }
 
   def readTemp(resource: String, schema: StructType): DataFrame = {
-    spark.read.csv(getClass.getResource(resource).getPath)
+//    val spark: SparkSession =
+//      SparkSession
+//        .builder()
+//        .appName("Observatory")
+//        .config("spark.master", "local")
+//        .getOrCreate()
+    spark.read.csv(fsPath(resource))
       .select(('_c0 + '_c1).alias("id"), '_c2.alias("month").cast(IntegerType),
         '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType))
    /* val rdd = spark.sparkContext.textFile(fsPath(resource))
@@ -81,7 +87,7 @@ object Extraction {
   }
 
   def readStations(resource: String): DataFrame =
-    spark.read.csv(getClass.getResource(resource).getPath)
+    spark.read.csv(fsPath(resource))
       .select(('_c0 + '_c1).alias("id"), '_c2.alias("lat").cast(DoubleType),
         '_c3.alias("long").cast(DoubleType))
       .where(col("lat").isNotNull && col("long").isNotNull)

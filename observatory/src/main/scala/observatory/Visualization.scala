@@ -6,7 +6,7 @@ import scala.math._
 /**
  * 2nd milestone: basic visualization
  */
-object Visualization {
+object Visualization extends App {
 
   val p = 2
 
@@ -33,6 +33,11 @@ object Visualization {
     } else temperatures.toList(i)._2
   }
 
+  override def main(args: Array[String]): Unit = {
+    val temps = Extraction.locationYearlyAverageRecords(Extraction.locateTemperatures(2010, "/stations.csv", "/2010.csv"))
+    println(predictTemperature(temps, Location(-78, 106)))
+  }
+
   def checkZero(locations: Iterable[Location], x: Location): Integer = {
     var list = locations
     var i = 0
@@ -51,6 +56,12 @@ object Visualization {
    */
   def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
     ???
+//    var sorted = points.toList.sortWith((a, b) => a._1 < b._1)
+//    def binSearch(): (Temperature, Temperature) = {
+//      while (sorted.head._1 < value) {
+//        sorted = sorted.tail
+//      }
+//    }
   }
 
   /**
