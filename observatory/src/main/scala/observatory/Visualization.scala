@@ -55,13 +55,31 @@ object Visualization extends App {
    * @return The color that corresponds to `value`, according to the color scale defined by `points`
    */
   def interpolateColor(points: Iterable[(Temperature, Color)], value: Temperature): Color = {
-    ???
-//    var sorted = points.toList.sortWith((a, b) => a._1 < b._1)
-//    def binSearch(): (Temperature, Temperature) = {
-//      while (sorted.head._1 < value) {
-//        sorted = sorted.tail
-//      }
-//    }
+    val fil = points.filter(_._1 == value)
+    if (!fil.isEmpty)
+      fil.toList(0)._2
+    else {
+      var sorted = points.toList.sortWith((a, b) => a._1 < b._1)
+      val ab = binSearch()
+      linearInterpolation(ab._1, ab._2)
+
+      def binSearch(): ((Temperature, Color), (Temperature, Color)) = {
+        var a: Temperature = -100
+        while (sorted.head._1 < value) {
+          a = sorted.head._1
+          sorted = sorted.tail
+        }
+        (sorted.head, sorted.tail.head)
+      }
+
+      def linearInterpolation(a: (Temperature, Color), b: (Temperature, Color)): Color = {
+        Color(intInterpolate(a._2.red, b._2.red),
+          intInterpolate(a._2.green, b._2.green),
+          intInterpolate(a._2.blue, b._2.blue))
+
+        def intInterpolate(fx0: Integer, fx1: Integer): Int = (fx0 + (fx1 - fx0) * (value - a._1) / (b._1 - a._1)).toInt
+      }
+    }
   }
 
   /**
