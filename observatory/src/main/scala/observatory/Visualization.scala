@@ -59,16 +59,6 @@ object Visualization extends App {
     if (!fil.isEmpty)
       fil.toList(0)._2
     else {
-      def binSearch(sorted: Iterable[(Temperature, Color)]): ((Temperature, Color), (Temperature, Color)) = {
-        var a: Temperature = -100
-        var list = sorted
-        while (list.head._1 < value) {
-          a = list.head._1
-          list = list.tail
-        }
-        (list.head, list.tail.head)
-      }
-
       def linearInterpolation(a: (Temperature, Color), b: (Temperature, Color)): Color = {
         def intInterpolate(fx0: Integer, fx1: Integer): Int = (fx0 + (fx1 - fx0) * (value - a._1) / (b._1 - a._1)).toInt
 
@@ -78,8 +68,11 @@ object Visualization extends App {
       }
 
       val sorted = points.toList.sortWith((a, b) => a._1 < b._1)
-      val ab = binSearch(sorted)
-      linearInterpolation(ab._1, ab._2)
+      val ab = sorted.partition(_._1 < value)
+      if (ab._1.isEmpty && ab._2.isEmpty) Color(0, 0, 0)
+      else if (ab._1.isEmpty) ab._2.head._2
+      else if (ab._2.isEmpty) ab._1.reverse.head._2
+      else linearInterpolation(ab._1.reverse.head, ab._2.head)
     }
   }
 
@@ -92,14 +85,15 @@ object Visualization extends App {
     val colorsList = colors.toList
     val tempList = temperatures.toList
 
-    var pixels = new Array[Pixel](360 * 180)
+    val pixels = new Array[Pixel](360 * 180)
     var  i = 0
     for (lat <- (-89 to 90).reverse) {
       for (lon <- -180 until 180) {
-        val tempAtLoc = tempList.filter(t => t._1.lat == lat && t._1.lon == lon)(0)._2
+        val tempAtLoc = tempList.filter(t => t._1.lat.round == lat && t._1.lon.round == lon)(0)._2
         val color = colorsList.filter(_._1 == tempAtLoc)(0)._2
 
         pixels(i) = Pixel.apply(color.red, color.green, color.blue, 0)
+        i = i + 1
       }
     }
 
