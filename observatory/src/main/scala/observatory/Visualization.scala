@@ -92,7 +92,7 @@ object Visualization extends App {
         val tempAtLoc = tempList.filter(t => t._1.lat.round == lat && t._1.lon.round == lon)(0)._2
         val color = colorsList.filter(_._1 == tempAtLoc)(0)._2
 
-        pixels(i) = Pixel.apply(color.red, color.green, color.blue, 0)
+        pixels(i) = Pixel.apply(color.red, color.green, color.blue, 100)
         i = i + 1
       }
     }
