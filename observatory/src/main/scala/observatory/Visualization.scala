@@ -88,7 +88,21 @@ object Visualization extends App {
    * @return A 360×180 image where each pixel shows the predicted temperature at its location
    */
   def visualize(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)]): Image = {
-    ???
+    val colorsList = colors.toList
+    val tempList = temperatures.toList
+
+    var pixels = new Array[Pixel](360 * 180)
+    var  i = 0
+    for (lat <- (-89 to 90).reverse) {
+      for (lon <- -180 until 180) {
+        val tempAtLoc = tempList.filter(t => t._1.lat == lat && t._1.lon == lon)(0)._2
+        val color = colorsList.filter(_._1 == tempAtLoc)(0)._2
+
+        pixels(i) = Pixel.apply(color.red, color.green, color.blue, 0)
+      }
+    }
+
+    Image(360, 180, pixels)
   }
 
 }
