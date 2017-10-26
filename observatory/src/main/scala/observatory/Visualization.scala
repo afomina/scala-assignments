@@ -59,26 +59,27 @@ object Visualization extends App {
     if (!fil.isEmpty)
       fil.toList(0)._2
     else {
-      var sorted = points.toList.sortWith((a, b) => a._1 < b._1)
-      val ab = binSearch()
-      linearInterpolation(ab._1, ab._2)
-
-      def binSearch(): ((Temperature, Color), (Temperature, Color)) = {
+      def binSearch(sorted: Iterable[(Temperature, Color)]): ((Temperature, Color), (Temperature, Color)) = {
         var a: Temperature = -100
-        while (sorted.head._1 < value) {
-          a = sorted.head._1
-          sorted = sorted.tail
+        var list = sorted
+        while (list.head._1 < value) {
+          a = list.head._1
+          list = list.tail
         }
-        (sorted.head, sorted.tail.head)
+        (list.head, list.tail.head)
       }
 
       def linearInterpolation(a: (Temperature, Color), b: (Temperature, Color)): Color = {
+        def intInterpolate(fx0: Integer, fx1: Integer): Int = (fx0 + (fx1 - fx0) * (value - a._1) / (b._1 - a._1)).toInt
+
         Color(intInterpolate(a._2.red, b._2.red),
           intInterpolate(a._2.green, b._2.green),
           intInterpolate(a._2.blue, b._2.blue))
-
-        def intInterpolate(fx0: Integer, fx1: Integer): Int = (fx0 + (fx1 - fx0) * (value - a._1) / (b._1 - a._1)).toInt
       }
+
+      val sorted = points.toList.sortWith((a, b) => a._1 < b._1)
+      val ab = binSearch(sorted)
+      linearInterpolation(ab._1, ab._2)
     }
   }
 
