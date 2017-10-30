@@ -4,11 +4,12 @@ import com.sksamuel.scrimage.{Image, Pixel, RGBColor}
 
 import scala.math._
 import observatory.Visualization._
+import observatory.Extraction._
 
 /**
   * 3rd milestone: interactive visualization
   */
-object Interaction {
+object Interaction { //extends App {
 
   /**
     * @param tile Tile coordinates
@@ -49,6 +50,14 @@ object Interaction {
     Image(256, 256, pixels)
   }
 
+//  override def main(args: Array[String]): Unit = {
+//    val temps = locationYearlyAverageRecords(locateTemperatures(2010, "/stations.csv", "/2010.csv"))
+//    val colors = List((60, Color(255, 255, 255)), (32, Color(255, 0, 0)), (12, Color(255, 255, 0)),
+//      (0, Color(0, 255, 255)), (-15, Color(0, 0, 255)), (-27, Color(255, 0, 255)), (-50, Color(33, 0, 107)),
+//      (-60, Color(0, 0, 0)))
+//    tile(temps, colors)
+//  }
+
   /**
     * Generates all the tiles for zoom levels 0 to 3 (included), for all the given years.
     * @param yearlyData Sequence of (year, data), where `data` is some data associated with
@@ -60,7 +69,12 @@ object Interaction {
     yearlyData: Iterable[(Year, Data)],
     generateImage: (Year, Tile, Data) => Unit
   ): Unit = {
-    ???
+    for {
+      z <- 0 to 3
+      x <- 0 until 1 << z
+      y <- 0 until 1 << z
+      (year, data) <- yearlyData
+    } generateImage(year, Tile(x, y, z), data)
   }
 
 }
