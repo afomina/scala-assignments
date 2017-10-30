@@ -1,7 +1,9 @@
 package observatory
 
-import com.sksamuel.scrimage.{Image, Pixel}
+import com.sksamuel.scrimage.{Image, Pixel, RGBColor}
+
 import scala.math._
+import observatory.Visualization._
 
 /**
   * 3rd milestone: interactive visualization
@@ -23,8 +25,28 @@ object Interaction {
     * @param tile Tile coordinates
     * @return A 256×256 image showing the contents of the given tile
     */
-  def tile(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile): Image = {
-    ???
+  def tile(temperatures: Iterable[(Location, Temperature)], colors: Iterable[(Temperature, Color)], tile: Tile):
+  Image = {
+    val pixels = (0 until 256 * 256)
+      .par.map(pos => {
+      val xPos: Int = (pos % 256) / 256 + tile.x // column of image as fraction with offset x
+      val yPos: Int = (pos / 256) / 256 + tile.y // row of image as fraction with offset y
+
+      val color = interpolateColor(
+        colors,
+        predictTemperature(
+          temperatures,
+          tileLocation(Tile(xPos, yPos, tile.zoom))
+        )
+      )
+
+      pos -> RGBColor(color.red, color.green, color.blue, 127).toPixel
+    })
+      .seq
+      .sortBy(_._1)
+      .map(_._2).toArray
+
+    Image(256, 256, pixels)
   }
 
   /**
