@@ -1,5 +1,7 @@
 package observatory
 
+import scala.math._
+
 /**
   * 4th milestone: value-added information
   */
@@ -43,7 +45,15 @@ object Manipulation {
     * @return A grid containing the deviations compared to the normal temperatures
     */
   def deviation(temperatures: Iterable[(Location, Temperature)], normals: GridLocation => Temperature): GridLocation => Temperature = {
-    ???
+//    val temperaturesMap = temperatures.map()
+    {
+      for {
+        lat <- -89 to 90
+        lon <- -180 to 179
+      }
+        yield GridLocation(lat, lon) -> abs(normals(GridLocation(lat, lon)) -
+          temperatures.filter(_._1 == Location(lat.toInt, lon.toInt)).toList(0)._2)
+    }.toMap
   }
 
 
