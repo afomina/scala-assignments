@@ -71,8 +71,8 @@ object Interaction { //extends App {
   ): Unit = {
     for {
       z <- 0 to 3
-      x <- 0 to 1 << z
-      y <- 0 to 1 << z
+      x <- 0 until 1 << z
+      y <- 0 until 1 << z
       (year, data) <- yearlyData
     } generateImage(year, Tile(x, y, z), data)
   }
