@@ -23,7 +23,12 @@ object Visualization2 {
     d10: Temperature,
     d11: Temperature
   ): Temperature = {
-    ???
+//    val r1 = CellPoint(point.x, 0)
+//    val r2 = CellPoint(point.x, 1)
+//    val temR1 = (1 - point.x) * d00 + point.x * d10
+//    val temR2 = (1 - point.x) * d01 + point.x * d11
+//    val interR1R2 = (1 - point.y) * temR1 + point.y * temR2
+    d00 * (1 - point.x) * (1 - point.y) + d10 * point.x * (1 - point.y) + d01 * (1 - point.x) * point.y + d11 * point.x * point.y
   }
 
   /**
