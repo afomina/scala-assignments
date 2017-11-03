@@ -44,7 +44,7 @@ object Visualization2 {
     for (lat <- (-89 to 90).reverse) {
       for (lon <- -180 until 180) {
         val tempAtLoc = grid(GridLocation(lat, lon))
-        val color = colorsList.filter(_._1 == tempAtLoc)(0)._2
+        val color = colorsList.find(_._1 == tempAtLoc).getOrElse((tempAtLoc, Color(0, 0, 0)))._2
 
         pixels(i) = Pixel.apply(color.red, color.green, color.blue, 100)
         i = i + 1
