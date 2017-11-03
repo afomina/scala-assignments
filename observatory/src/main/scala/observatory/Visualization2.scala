@@ -23,11 +23,6 @@ object Visualization2 {
     d10: Temperature,
     d11: Temperature
   ): Temperature = {
-//    val r1 = CellPoint(point.x, 0)
-//    val r2 = CellPoint(point.x, 1)
-//    val temR1 = (1 - point.x) * d00 + point.x * d10
-//    val temR2 = (1 - point.x) * d01 + point.x * d11
-//    val interR1R2 = (1 - point.y) * temR1 + point.y * temR2
     d00 * (1 - point.x) * (1 - point.y) + d10 * point.x * (1 - point.y) + d01 * (1 - point.x) * point.y + d11 * point.x * point.y
   }
 
@@ -42,7 +37,21 @@ object Visualization2 {
     colors: Iterable[(Temperature, Color)],
     tile: Tile
   ): Image = {
-    ???
+    val colorsList = colors.toList
+
+    val pixels = new Array[Pixel](256 * 256)
+    var  i = 0
+    for (lat <- (-89 to 90).reverse) {
+      for (lon <- -180 until 180) {
+        val tempAtLoc = grid(GridLocation(lat, lon))
+        val color = colorsList.filter(_._1 == tempAtLoc)(0)._2
+
+        pixels(i) = Pixel.apply(color.red, color.green, color.blue, 100)
+        i = i + 1
+      }
+    }
+
+    Image(256, 256, pixels)
   }
 
 }
