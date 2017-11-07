@@ -33,7 +33,7 @@ object Extraction {
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String)
   : Iterable[(LocalDate, Location, Temperature)] = {
     val tempDf = readTemp(temperaturesFile, dfSchema(List("STN", "WBAN", "Month", "Day", "Temp")))
-    val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull && col("Lat") != 0.0 && col("Long")!=0.0)
+    val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull && col("Lat") != 0.0 && col("Long") != 0.0)
 
     val df = tempDf.join(stationsDf, usingColumn = "id")
 
@@ -55,23 +55,9 @@ object Extraction {
     records.map(t => (t._2, t._3)).groupBy(_._1)
       .map(z => (z._1, aver(z._2.map(_._2).toList))).toSeq
 
-      /*.aggregate((Location(0, 0), 0.0: Temperature))(
-      (acc, tuple) => (tuple._1, acc._2 + tuple._2.map(_._2).sum / tuple._2.size),
-      (acc1, acc2) => (acc1._1, acc1._2 + acc2._2)
-    )*/
-
-//    spark.sqlContext.createDataFrame(
-//      spark.sparkContext.parallelize(records.toList)
-//    ).groupBy("Location").agg(avg("Temperature")).map(row => (row.getAs(1), row.getAs(2))).collect()
   }
 
   def readTemp(resource: String, schema: StructType): DataFrame = {
-//    val spark: SparkSession =
-//      SparkSession
-//        .builder()
-//        .appName("Observatory")
-//        .config("spark.master", "local")
-//        .getOrCreate()
     spark.read.csv(fsPath(resource))
       .select(('_c0 + '_c1).alias("id"), '_c2.alias("month").cast(IntegerType),
         '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType))
@@ -106,6 +92,4 @@ object Extraction {
   def row(line: List[String]): Row =
    Row(line.head :: line.tail.head :: line.tail.tail.map(_.toDouble).toList)
 
-//  def tempRow(line: List[String]): Row =
-//    Row(line)
 }

@@ -14,7 +14,7 @@ object Visualization extends App {
     val angle = if (lat1 == lat2 && long1 == long2) 0
       else if (lat2 == -lat1 && long2 == 180 - long1 || lat1 == -lat2 && long1 == 180 - long2) Pi
       else acos(sin(lat1) * sin(lat2) + cos(lat1) * cos(lat2) * cos(abs(long1 - long2)))
-    6371 * angle
+    6371 * angle * 1000
   }
 
   def distance(loc1: Location, loc2: Location): Double = distance(loc1.lat, loc1.lon, loc2.lat, loc2.lon)

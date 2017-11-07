@@ -50,8 +50,10 @@ object Interaction2 {
    */
   def yearSelection(selectedLayer: Signal[Layer], sliderValue: Signal[Year]): Signal[Year] = {
     val range = yearBounds(selectedLayer)
-    if (range().contains(sliderValue())) sliderValue
-    else if (sliderValue() > range().end && range().isInclusive || sliderValue() >= range().end && !range().isInclusive) Signal(range().end)
+    if (sliderValue() <= range().end && sliderValue() >= range().start && range().isInclusive ||
+      sliderValue() < range().end && sliderValue() > range().start && !range().isInclusive) sliderValue
+    else if (sliderValue() > range().end && range().isInclusive || sliderValue() >= range().end && !range().isInclusive)
+      Signal(range().end - (if (range().isInclusive) 0 else 1))
     else Signal(range().start)
   }
 
