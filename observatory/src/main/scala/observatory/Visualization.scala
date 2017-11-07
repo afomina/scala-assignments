@@ -89,9 +89,6 @@ object Visualization extends App {
     var  i = 0
     for (lat <- (-89 to 90).reverse) {
       for (lon <- -180 until 180) {
-//        val tempAtLoc = tempList.find(t => t._1.lat.round == lat && t._1.lon.round == lon)
-//          .getOrElse((Location(lat, lon), 0))._2
-//        val color = colorsList.find(_._1 == tempAtLoc).getOrElse((tempAtLoc, Color(0, 0, 0)))._2
         val color = interpolateColor(colors, predictTemperature(temperatures, Location(lat, lon)))
 
         pixels(i) = Pixel.apply(color.red, color.green, color.blue, 100)

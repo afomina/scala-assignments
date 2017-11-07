@@ -41,8 +41,6 @@ object Manipulation {
 
     val aver = pairs.groupBy(_._1).map(a => (a._1, a._2.map(_._2).sum / a._2.size))
 
-    def func(g: GridLocation): Temperature = aver(g)
-
     aver
   }
 
@@ -52,17 +50,16 @@ object Manipulation {
    * @return A grid containing the deviations compared to the normal temperatures
    */
   def deviation(temperatures: Iterable[(Location, Temperature)], normals: GridLocation => Temperature): GridLocation => Temperature = {
-    //    val temperaturesMap = temperatures.map()
-    {
+    val grid = makeGrid(temperatures)
+    val res = {
       for {
         lat <- -89 to 90
         lon <- -180 to 179
       }
-        yield GridLocation(lat, lon) -> abs(normals(GridLocation(lat, lon)) -
-          temperatures.filter(t => round(t._1.lat).toInt == lat && round(t._1.lon).toInt == lon).toList(0)._2)
+        yield GridLocation(lat, lon) -> abs(normals(GridLocation(lat, lon)) - grid(GridLocation(lat, lon)))
     }.toMap
+    res
   }
-
 
 }
 
