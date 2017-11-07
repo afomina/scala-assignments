@@ -49,12 +49,11 @@ object Interaction2 {
    *         in the `selectedLayer` bounds.
    */
   def yearSelection(selectedLayer: Signal[Layer], sliderValue: Signal[Year]): Signal[Year] = {
-    val range = yearBounds(selectedLayer)
-    if (sliderValue() <= range().end && sliderValue() >= range().start && range().isInclusive ||
-      sliderValue() < range().end && sliderValue() > range().start && !range().isInclusive) sliderValue
-    else if (sliderValue() > range().end && range().isInclusive || sliderValue() >= range().end && !range().isInclusive)
-      Signal(range().end - (if (range().isInclusive) 0 else 1))
-    else Signal(range().start)
+    if (sliderValue() <= selectedLayer().bounds.end && sliderValue() >= selectedLayer().bounds.start && selectedLayer().bounds.isInclusive ||
+      sliderValue() < selectedLayer().bounds.end && sliderValue() > selectedLayer().bounds.start && !selectedLayer().bounds.isInclusive) sliderValue
+    else if (sliderValue() > selectedLayer().bounds.end && selectedLayer().bounds.isInclusive || sliderValue() >= selectedLayer().bounds.end && !selectedLayer().bounds.isInclusive)
+      Signal(selectedLayer().bounds.end - (if (selectedLayer().bounds.isInclusive) 0 else 1))
+    else Signal(selectedLayer().bounds.start)
   }
 
   /**
