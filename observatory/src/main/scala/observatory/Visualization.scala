@@ -91,7 +91,7 @@ object Visualization extends App {
       for (lon <- -180 until 180) {
         val color = interpolateColor(colors, predictTemperature(temperatures, Location(lat, lon)))
 
-        pixels(i) = Pixel.apply(color.red, color.green, color.blue, 100)
+        pixels(i) = Pixel.apply(color.red, color.green, color.blue, 255)
         i = i + 1
       }
     }
