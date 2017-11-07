@@ -49,9 +49,10 @@ object Interaction2 {
    *         in the `selectedLayer` bounds.
    */
   def yearSelection(selectedLayer: Signal[Layer], sliderValue: Signal[Year]): Signal[Year] = {
-    if (selectedLayer().bounds.contains(sliderValue())) sliderValue
-    else if (sliderValue() > selectedLayer().bounds.end) Signal(selectedLayer().bounds.end)
-    else Signal(selectedLayer().bounds.start)
+    val range = yearBounds(selectedLayer)
+    if (range().contains(sliderValue())) sliderValue
+    else if (sliderValue() > range().end && range().isInclusive || sliderValue() >= range().end && !range().isInclusive) Signal(range().end)
+    else Signal(range().start)
   }
 
   /**
@@ -69,7 +70,8 @@ object Interaction2 {
    * @return The caption to show
    */
   def caption(selectedLayer: Signal[Layer], selectedYear: Signal[Year]): Signal[String] = {
-    Signal(selectedLayer().layerName.id + "(" + selectedYear() + ")")
+//    val layer = selectedLayer().layerName.id
+    Signal((selectedLayer().layerName.id.charAt(0) + "").toUpperCase() + selectedLayer().layerName.id.substring(1) + " (" + selectedYear() + ")")
   }
 
 }
