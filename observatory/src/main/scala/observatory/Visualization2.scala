@@ -41,7 +41,7 @@ object Visualization2 {
 
     val pixels = new Array[Pixel](256 * 256)
     var  i = 0
-    for (lat <- (-89 to 90).reverse) {
+    for (lat <- (-89 to 90).reverse) { //TODO 256x256?
       for (lon <- -180 until 180) {
         val tempAtLoc = grid(GridLocation(lat, lon))
         val color = colorsList.find(_._1 == tempAtLoc).getOrElse((tempAtLoc, Color(0, 0, 0)))._2
