@@ -33,7 +33,7 @@ object Extraction {
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String)
   : Iterable[(LocalDate, Location, Temperature)] = {
     val tempDf = readTemp(temperaturesFile)
-    val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull && col("Lat") != 0.0 && col("Long") != 0.0)
+    val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull )
 
     val df = tempDf.join(stationsDf, usingColumn = "id")
 
@@ -59,7 +59,7 @@ object Extraction {
 
   def readTemp(resource: String): DataFrame = {
     spark.read.csv(fsPath(resource))
-      .select(('_c0 + '_c1).alias("id"), '_c2.alias("month").cast(IntegerType),
+      .select(('_c0 + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("month").cast(IntegerType),
         '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType))
    /* val rdd = spark.sparkContext.textFile(fsPath(resource))
 
@@ -74,7 +74,7 @@ object Extraction {
 
   def readStations(resource: String): DataFrame =
     spark.read.csv(fsPath(resource))
-      .select(('_c0 + '_c1).alias("id"), '_c2.alias("lat").cast(DoubleType),
+      .select(('_c0 + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("lat").cast(DoubleType),
         '_c3.alias("long").cast(DoubleType))
       .where(col("lat").isNotNull && col("long").isNotNull)
 
