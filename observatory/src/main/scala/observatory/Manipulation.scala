@@ -13,13 +13,14 @@ object Manipulation {
    *         returns the predicted temperature at this location
    */
   def makeGrid(temperatures: Iterable[(Location, Temperature)]): GridLocation => Temperature = {
-    {
+     {
       for {
         lat <- -89 to 90
         lon <- -180 to 179
       }
         yield GridLocation(lat, lon) -> Visualization.predictTemperature(temperatures, Location(lat, lon))
     }.toMap
+//    g => map(g)
   }
 
   /**
@@ -56,7 +57,7 @@ object Manipulation {
         lat <- -89 to 90
         lon <- -180 to 179
       }
-        yield GridLocation(lat, lon) -> abs(normals(GridLocation(lat, lon)) - grid(GridLocation(lat, lon)))
+        yield GridLocation(lat, lon) -> (grid(GridLocation(lat, lon)) - normals(GridLocation(lat, lon)))
     }.toMap
     res
   }
