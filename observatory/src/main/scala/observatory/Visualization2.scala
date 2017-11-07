@@ -1,6 +1,7 @@
 package observatory
 
 import com.sksamuel.scrimage.{Image, Pixel}
+import scala.math._
 
 /**
   * 5th milestone: value-added information visualization
@@ -37,14 +38,27 @@ object Visualization2 {
     colors: Iterable[(Temperature, Color)],
     tile: Tile
   ): Image = {
-    val colorsList = colors.toList
-
     val pixels = new Array[Pixel](256 * 256)
     var  i = 0
-    for (lat <- (-89 to 90).reverse) { //TODO 256x256?
-      for (lon <- -180 until 180) {
-        val tempAtLoc = grid(GridLocation(lat, lon))
-        val color = colorsList.find(_._1 == tempAtLoc).getOrElse((tempAtLoc, Color(0, 0, 0)))._2
+    for (x <- 0 until 256) {
+      for (y <- 0 until 256) {
+
+        val location = Interaction.tileLocation(Tile(x / 256 + tile.x, y / 256 + tile.y, tile.zoom))
+        val lat = location.lat
+        val lon = location.lon
+
+        val latRange = List(floor(lat).toInt, ceil(lat).toInt)
+        val lonRange = List(floor(lon).toInt, ceil(lon).toInt)
+
+        val d = {
+          for {
+            xPos <- 0 to 1
+            yPos <- 0 to 1
+          } yield (xPos, yPos) -> grid(GridLocation(latRange(1 - yPos), lonRange(xPos)))
+        }.toMap
+
+        val color = Visualization.interpolateColor(colors, bilinearInterpolation(CellPoint(latRange(1) - lat, lon - lonRange(0)),
+  d((0, 0)), d((0, 1)), d((1, 0)), d((1, 1)) ))
 
         pixels(i) = Pixel.apply(color.red, color.green, color.blue, 100)
         i = i + 1
