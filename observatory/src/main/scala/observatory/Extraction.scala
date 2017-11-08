@@ -3,26 +3,15 @@ package observatory
 import java.nio.file.Paths
 import java.time.LocalDate
 
-import monix.types.utils
+import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
-import org.apache.spark.sql.functions._
+
+import scala.io.Source
 
 /**
   * 1st milestone: data extraction
   */
 object Extraction {
-
-  val spark: SparkSession =
-    SparkSession
-      .builder()
-      .appName("Observatory")
-      .config("spark.master", "local")
-      .getOrCreate()
-
-  import spark.implicits._
-  import org.apache.log4j.{Level, Logger}
-  Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
   /**
     * @param year             Year number
@@ -32,17 +21,15 @@ object Extraction {
     */
   def locateTemperatures(year: Year, stationsFile: String, temperaturesFile: String)
   : Iterable[(LocalDate, Location, Temperature)] = {
-    val tempDf = readTemp(temperaturesFile)
-    val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull )
-
-    val df = tempDf.join(stationsDf, tempDf("id") <=> stationsDf("id"), "left")
+    val tempDf = readTemp(temperaturesFile, year)
+    val stationsDf = readStations(stationsFile)
 
     def celsius(temp: Double): Double = (temp - 32) / 1.8
 
-    df.collect().map {
-      case Row(id: String, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
-        (LocalDate.of(year, month, day), Location(lat, long), celsius(temp))
-    }.toSeq
+    tempDf.map{
+      case TempRecord(id, date, temp) => (date, stationsDf.find(_.id == id).get.location, celsius(temp))
+    }
+
   }
 
   /**
@@ -57,30 +44,24 @@ object Extraction {
 
   }
 
-  def readTemp(resource: String): DataFrame = {
-    spark.read.csv(fsPath(resource))
-      .select(('_c0 + "_" + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("month").cast(IntegerType),
-        '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType)).where('_c4 < 9000 && ('_c0.isNotNull || '_c1.isNotNull))
+  case class TempRecord (id: (String, String), date: LocalDate, temp: Double)
+
+  case class StationRecord(id: (String, String), location: Location)
+
+  def readTemp(resource: String, year: Int): List[TempRecord] = {
+    Source.fromInputStream(getClass.getResourceAsStream(resource)).getLines().map{
+      line => val tuple = line.split(",")
+        TempRecord((tuple(0), tuple(1)), LocalDate.of(year, tuple(2).toInt, tuple(3).toInt), tuple(4).toDouble)
+    }.filter(_.temp < 9000).toList
   }
 
-  def readStations(resource: String): DataFrame =
-    spark.read.csv(fsPath(resource))
-      .select(('_c0 + "_" + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("lat").cast(DoubleType),
-        '_c3.alias("long").cast(DoubleType))
-      .where('_c2.isNotNull && '_c3.isNotNull && ('_c0.isNotNull || '_c1.isNotNull))
+  def readStations(resource: String): List[StationRecord] = {
+    Source.fromInputStream(getClass.getResourceAsStream(resource)).getLines().map(_.split(","))
+      .filter(t => t.size > 2 && t(2) != null && t(3) != null).map(
+       tuple => StationRecord((tuple(0), tuple(1)), Location(tuple(2).toDouble, tuple(3).toDouble))).toList
+  }
 
   def fsPath(resource: String): String =
     Paths.get(getClass.getResource(resource).toURI).toString
-
-  def dfSchema(columnNames: List[String]): StructType =
-    StructType(StructField(columnNames.head, StringType, nullable = true) :: StructField(columnNames.tail.head, StringType, nullable = true) ::
-      columnNames.tail.tail.map(name => StructField(name, DoubleType, nullable = true)))
-
-  def stationsSchema(columnNames: List[String]): StructType =
-    StructType(StructField(columnNames.head, StringType, nullable = true) :: StructField(columnNames.tail.head, StringType, nullable = true) ::
-      columnNames.tail.tail.map(name => StructField(name, DoubleType, nullable = false)))
-
-  def row(line: List[String]): Row =
-   Row(line.head :: line.tail.head :: line.tail.tail.map(_.toDouble).toList)
 
 }
