@@ -60,14 +60,14 @@ object Extraction {
   def readTemp(resource: String): DataFrame = {
     spark.read.csv(fsPath(resource))
       .select(('_c0 + "_" + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("month").cast(IntegerType),
-        '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType)).where(col("id").isNotNull && col("temp") < 9000)
+        '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType)).where('_c4 < 9000 && ('_c0.isNotNull || '_c1.isNotNull))
   }
 
   def readStations(resource: String): DataFrame =
     spark.read.csv(fsPath(resource))
       .select(('_c0 + "_" + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("lat").cast(DoubleType),
         '_c3.alias("long").cast(DoubleType))
-      .where(col("id").isNotNull && col("lat").isNotNull && col("long").isNotNull)
+      .where('_c2.isNotNull && '_c3.isNotNull && ('_c0.isNotNull || '_c1.isNotNull))
 
   def fsPath(resource: String): String =
     Paths.get(getClass.getResource(resource).toURI).toString
