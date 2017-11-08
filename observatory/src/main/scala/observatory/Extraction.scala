@@ -27,8 +27,8 @@ object Extraction {
     def celsius(temp: Double): Double = (temp - 32) / 1.8
 
     tempDf.map{
-      case TempRecord(id, date, temp) => (date, stationsDf.find(_.id == id).get.location, celsius(temp))
-    }
+      case TempRecord(id, date, temp) => (date, stationsDf.getOrElse(id, null), celsius(temp))
+    }.filter(_._2 != null)
 
   }
 
@@ -55,10 +55,10 @@ object Extraction {
     }.filter(_.temp < 9000).toList
   }
 
-  def readStations(resource: String): List[StationRecord] = {
+  def readStations(resource: String): Map[(String, String), Location] = {
     Source.fromInputStream(getClass.getResourceAsStream(resource)).getLines().map(_.split(","))
-      .filter(t => t.size > 2 && t(2) != null && t(3) != null).map(
-       tuple => StationRecord((tuple(0), tuple(1)), Location(tuple(2).toDouble, tuple(3).toDouble))).toList
+      .filter(t => t.size > 2 && !t(2).isEmpty && !t(3).isEmpty).map(
+       tuple => ((tuple(0), tuple(1)), Location(tuple(2).toDouble, tuple(3).toDouble))).toMap
   }
 
   def fsPath(resource: String): String =
