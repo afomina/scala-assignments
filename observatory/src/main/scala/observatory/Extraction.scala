@@ -35,12 +35,12 @@ object Extraction {
     val tempDf = readTemp(temperaturesFile)
     val stationsDf = readStations(stationsFile).filter(!col("Lat").isNull && !col("Long").isNull )
 
-    val df = tempDf.join(stationsDf, usingColumn = "id")
+    val df = tempDf.join(stationsDf, tempDf("id") <=> stationsDf("id"), "left")
 
     def celsius(temp: Double): Double = (temp - 32) / 1.8
 
     df.collect().map {
-      case Row(id: Double, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
+      case Row(id: String, month: Int, day: Int, temp: Double, lat: Double, long: Double) =>
         (LocalDate.of(year, month, day), Location(lat, long), celsius(temp))
     }.toSeq
   }
@@ -59,24 +59,15 @@ object Extraction {
 
   def readTemp(resource: String): DataFrame = {
     spark.read.csv(fsPath(resource))
-      .select(('_c0 + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("month").cast(IntegerType),
-        '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType))
-   /* val rdd = spark.sparkContext.textFile(fsPath(resource))
-
-    val data =
-      rdd
-        //.mapPartitionsWithIndex((i, it) => if (i == 0) it.drop(1) else it) // skip the header line
-        .map(_.split(",").to[List])
-        .map(row)
-
-      spark.createDataFrame(data, schema)*/
+      .select(('_c0 + "_" + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("month").cast(IntegerType),
+        '_c3.alias("day").cast(IntegerType), '_c4.alias("temp").cast(DoubleType)).where(col("id").isNotNull && col("temp") < 9000)
   }
 
   def readStations(resource: String): DataFrame =
     spark.read.csv(fsPath(resource))
-      .select(('_c0 + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("lat").cast(DoubleType),
+      .select(('_c0 + "_" + coalesce('_c1, lit(""))).alias("id"), '_c2.alias("lat").cast(DoubleType),
         '_c3.alias("long").cast(DoubleType))
-      .where(col("lat").isNotNull && col("long").isNotNull)
+      .where(col("id").isNotNull && col("lat").isNotNull && col("long").isNotNull)
 
   def fsPath(resource: String): String =
     Paths.get(getClass.getResource(resource).toURI).toString
