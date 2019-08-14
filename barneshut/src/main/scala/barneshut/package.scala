@@ -91,7 +91,6 @@ package object barneshut {
           Empty(centerX, centerY, size), Empty(centerX, centerY, size))
         for (item <- bodies)
           temp = temp.insert(item)
-//        temp.insert(b)
         temp
       } else Leaf(centerX, centerY, size, bodies.:+(b))
     }
@@ -240,7 +239,7 @@ package object barneshut {
 
     def timed[T](title: String)(body: => T): T = {
       var res: T = null.asInstanceOf[T]
-      val totalTime = /*measure*/ {
+      val totalTime = {
         val startTime = System.currentTimeMillis()
         res = body
         (System.currentTimeMillis() - startTime)
